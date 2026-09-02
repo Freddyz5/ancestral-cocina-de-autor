@@ -1,0 +1,35 @@
+{
+  "name": "ancestral-cocina-de-autor",
+  "version": "1.0.0",
+  "description": "Ancestral · Cocina de Autor — sitio y cotizador",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Freddyz5/ancestral-cocina-de-autor.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Freddyz5/ancestral-cocina-de-autor/issues"
+  },
+  "homepage": "https://github.com/Freddyz5/ancestral-cocina-de-autor#readme",
+  "dependencies": {
+    "@fontsource-variable/asap": "^5.3.0",
+    "@fontsource-variable/azeret-mono": "^5.3.0",
+    "@fontsource-variable/big-shoulders-display": "^5.3.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.2.1",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.6.0"
+  }
+}

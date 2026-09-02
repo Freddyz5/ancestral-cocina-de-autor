@@ -1,0 +1,290 @@
+@import 'tailwindcss';
+
+/* Sin la extensión .css a propósito: estos dos paquetes solo exportan `./*`,
+   que ya añade el `.css` — con la extensión escrita el resolutor busca
+   `wght.css.css` y el build falla. Asap sí exporta las dos formas. */
+@import '@fontsource-variable/big-shoulders-display/wght';
+@import '@fontsource-variable/azeret-mono/wght';
+@import '@fontsource-variable/asap/wght.css';
+
+@theme {
+  /* --- La lámina -------------------------------------------------------
+     Oro mate visto por su cara oscura. No es negro puro: el foil de Ancestral
+     tiene temperatura, y un #000 al lado del oro se ve azul. */
+  --color-lamina: #100d0a;
+  --color-lamina-honda: #0a0806;
+
+  /* La faceta: un paralelogramo de la teselación. Su valor dice cuánta luz
+     recibe, y eso es todo el sistema de elevación de esta página. */
+  --color-faceta: #17130f;
+  --color-faceta-alta: #201a14;
+  --color-faceta-plegada: #131009;
+
+  /* --- Los pliegues ----------------------------------------------------
+     La única forma de leer una lámina plegada es por sus pliegues: el monte
+     atrapa la luz, el valle cae en sombra. Son dos colores, no uno con dos
+     opacidades, y por eso el campo se lee como relieve y no como retícula. */
+  --color-monte: #d8a83c;
+  --color-valle: #6b6257;
+
+  /* --- El oro ----------------------------------------------------------
+     Muestreado de marca/ (el degradé del logotipo va de ámbar a oro pálido).
+     No se retoca. */
+  --color-oro: #d8a83c;
+  --color-oro-claro: #f5dc7a;
+  --color-oro-hondo: #a87c22;
+  --color-ambar: #e08a1e;
+  /* El brillo especular del foil: la línea de luz que corre por la lámina
+     cuando se la inclina. Existe solo dentro del degradé del botón en hover;
+     no es color de superficie ni de letra en ningún otro sitio. */
+  --color-oro-luz: #fff0b8;
+
+  /* --- Tintas sobre la lámina ------------------------------------------
+     Medidas contra #100d0a. El oro sí sirve de letra sobre este fondo
+     (8,7:1) — es la ventaja de invertir la lámina y la razón de que aquí no
+     haga falta una versión oscurecida del color de marca. */
+  --color-hueso: #ede4d2; /* 15,2:1 — texto corrido */
+  --color-hueso-suave: #a9a094; /* 7,1:1 — secundario, cifras en reposo */
+  --color-ceniza: #6b6257; /* 3,2:1 — solo filete, nunca letra */
+
+  /* --- La hoja impresa -------------------------------------------------
+     La lámina desplegada y llevada al papel. El documento que se lleva el
+     cliente no se imprime en oro sobre negro: se imprime. */
+  --color-papel: #f7f4ec;
+  --color-tinta: #14110d;
+
+  /* --- Tipografía ------------------------------------------------------
+     Tres registros y ni uno más. Big Shoulders: condensada de espolón, del
+     mismo aire que las versales en arco del logotipo. Azeret Mono: ficha
+     técnica — toda cifra medida (días, dólares, cantidades, id de pliegue)
+     vive acá, que es el único uso que una mono se gana. Asap: humanista,
+     tranquila con tildes y eñes, la que se lee de corrido. */
+  --font-display: 'Big Shoulders Display Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-ficha: 'Azeret Mono Variable', ui-monospace, 'SF Mono', monospace;
+  --font-texto: 'Asap Variable', 'Asap', ui-sans-serif, system-ui, sans-serif;
+
+  /* No se llama `--text-lamina` a propósito: existe `--color-lamina`, y en
+     Tailwind v4 ambos generan la utilidad `text-lamina`. Gana el color, así
+     que el titular salía en #100d0a sobre #100d0a — invisible. */
+  --text-monumental: clamp(2.6rem, 6.5vw, 5rem);
+  --text-monumental--line-height: 0.9;
+  --text-monumental--letter-spacing: -0.01em;
+
+  --text-titulo: clamp(1.75rem, 3.6vw, 2.6rem);
+  --text-titulo--line-height: 0.98;
+  --text-titulo--letter-spacing: 0;
+
+  --text-rubro: 1.32rem;
+  --text-rubro--line-height: 1.12;
+
+  --text-guia: 1.05rem;
+  --text-guia--line-height: 1.6;
+
+  --text-cuerpo: 0.97rem;
+  --text-cuerpo--line-height: 1.58;
+
+  --text-menudo: 0.86rem;
+  --text-menudo--line-height: 1.5;
+
+  /* El rótulo de ficha. No es un escalón más de la escala de lectura: es la
+     medida del rotulado de un plano — id de pliegue, etiqueta de columna,
+     sello de «recomendada». Siempre en la mono y siempre en versales. */
+  --text-rotulo: 0.68rem;
+  --text-rotulo--line-height: 1.4;
+
+  /* --- La geometría ----------------------------------------------------
+     El pliegue Miura corta a 60°; en pantalla eso se traduce en un sesgo
+     constante. Un solo ángulo para toda la página: si dos elementos se
+     sesgan distinto, dejan de pertenecer a la misma lámina. */
+  --sesgo: -11deg;
+  --chaflan: 0.85rem;
+
+  /* La lámina se abre de un tirón y frena sola: nunca lineal. */
+  --ease-pliegue: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    background: var(--color-lamina);
+    color: var(--color-hueso);
+    font-family: var(--font-texto);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* El foco es un pliegue que se enciende, con el mismo sesgo que todo lo
+     demás; un anillo redondo del navegador no pertenece a esta lámina. */
+  :focus-visible {
+    outline: 2px solid var(--color-oro);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: var(--color-oro);
+    color: var(--color-lamina);
+  }
+
+  /* Toda cifra medida va en la mono, con ancho fijo, sin excepción. */
+  .cifra {
+    font-family: var(--font-ficha);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+}
+
+@layer components {
+  /*
+   * LA FACETA
+   * Cada bloque de la página es una faceta de la teselación: un cuadrilátero
+   * con una esquina achaflanada por donde entra el pliegue. El chaflán no es
+   * un adorno de esquina redondeada — es por donde la lámina dobla, y por eso
+   * siempre está en la misma esquina (arriba a la derecha) en toda la página.
+   */
+  .faceta {
+    position: relative;
+    background: var(--color-faceta);
+    /* El chaflán va solo arriba a la derecha. Se probó también abajo a la
+       izquierda —simétrico, más bonito en abstracto— y cortaba justo el filete
+       del pliegue monte, que es el que carga el estado de la pieza. El canto
+       izquierdo queda entero porque ahí vive la información. */
+    clip-path: polygon(
+      0 0,
+      calc(100% - var(--chaflan)) 0,
+      100% var(--chaflan),
+      100% 100%,
+      0 100%
+    );
+    transition:
+      background-color 0.25s var(--ease-pliegue),
+      opacity 0.25s var(--ease-pliegue);
+  }
+
+  /*
+   * EL PLIEGUE MONTE
+   * El filete de oro del canto izquierdo: la arista que atrapa la luz. Es
+   * cómo se marca que una faceta está desplegada, y es lo único que separa
+   * visualmente una pieza incluida de una que no lo está. Va a 2px porque a
+   * 1px sobre este fondo el oro se apaga.
+   */
+  .pliegue-monte::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 2px;
+    background: linear-gradient(
+      to bottom,
+      var(--color-oro-claro),
+      var(--color-oro) 45%,
+      var(--color-oro-hondo)
+    );
+    transform-origin: left center;
+    transform: scaleY(0);
+    transition: transform 0.3s var(--ease-pliegue);
+  }
+  .desplegada.pliegue-monte::before {
+    transform: scaleY(1);
+  }
+
+  /*
+   * EL BOTÓN
+   * Un paralelogramo: la lámina no tiene rectángulos. El texto se contra-sesga
+   * para que se lea recto — sin eso la pieza entera parece torcida en vez de
+   * plegada.
+   */
+  .boton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.72rem 1.35rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--text-cuerpo);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transform: skewX(var(--sesgo));
+    transition:
+      background-color 0.2s var(--ease-pliegue),
+      color 0.2s var(--ease-pliegue),
+      transform 0.2s var(--ease-pliegue);
+  }
+  .boton > * {
+    transform: skewX(calc(var(--sesgo) * -1));
+  }
+
+  .boton-oro {
+    background: linear-gradient(105deg, var(--color-oro-hondo), var(--color-oro) 38%, var(--color-oro-claro));
+    color: var(--color-lamina);
+  }
+  .boton-oro:hover {
+    background: linear-gradient(105deg, var(--color-oro), var(--color-oro-claro) 60%, var(--color-oro-luz));
+  }
+
+  .boton-contorno {
+    color: var(--color-hueso);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-hueso) 28%, transparent);
+  }
+  .boton-contorno:hover {
+    color: var(--color-oro-claro);
+    box-shadow: inset 0 0 0 1px var(--color-oro);
+  }
+
+  /*
+   * EL RÓTULO DE FICHA
+   * La etiqueta de una especificación — «DÍAS», «VALOR», «FASE 02». Versalitas
+   * espaciadas en la mono, como el rotulado de un plano. Etiqueta cosas;
+   * nunca encabeza un titular.
+   */
+  .rotulo {
+    font-family: var(--font-ficha);
+    font-size: var(--text-rotulo);
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-hueso-suave);
+  }
+
+  /* El id de pliegue: el número de fase, en la esquina de su bloque. */
+  .id-pliegue {
+    font-family: var(--font-ficha);
+    font-size: var(--text-rotulo);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    color: var(--color-oro);
+  }
+}

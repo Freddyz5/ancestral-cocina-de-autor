@@ -1,0 +1,202 @@
+---
+/**
+ * LA LÁMINA — el fondo de toda la página, y el componente firma del sistema.
+ *
+ * Reconstruido. La primera versión dibujaba la teselación correcta pero la
+ * apagaba entera con `opacity: 0.34`, y las dos caras se llenaban con valores
+ * que se diferenciaban en tres puntos de 255: a esa distancia las facetas
+ * contiguas del mismo valor se fundían y lo que quedaba era una tracería
+ * hexagonal — un panal, no un pliegue. Bajar más la opacidad hacía el panal
+ * más tenue sin volverlo papel.
+ *
+ * Lo que hace que una lámina plegada parezca plegada es que **cada tira recibe
+ * una cantidad distinta de luz**. En un Miura la fila es una tira continua:
+ * todas sus caras se inclinan igual, y lo que alterna son las filas. Así que
+ * hay dos valores, uno por sentido de la tira, cada uno con su degradé a lo
+ * largo del pliegue (una cara de papel nunca es plana), más el grano del
+ * material generado con `feTurbulence` y una única luz rasante desde arriba a
+ * la izquierda, como en la fachada del local.
+ *
+ * Cuatro capas, de atrás hacia adelante:
+ *   1. Las facetas, con su valor y su degradé según el sentido de su tira.
+ *   2. El grano del papel.
+ *   3. Los pliegues: monte sólido en oro, valle punteado en ceniza.
+ *   4. La luz rasante y el oscurecimiento hacia los cantos.
+ *
+ * Va `fixed` y detrás de todo. En papel desaparece: un fondo fijo se imprime
+ * distinto en cada navegador y el documento no puede depender de él.
+ */
+
+/** Ancho y alto de una celda, y cuánto se desplaza el zigzag por fila. */
+const W = 104;
+const H = 68;
+const D = 27;
+const COLS = 20;
+const ROWS = 18;
+
+const ancho = W * COLS;
+const alto = H * ROWS;
+
+/** Desplazamiento del pliegue vertical en la fila j. Alterna 0 / D. */
+const desvio = (j: number) => (j % 2 === 0 ? 0 : D);
+
+/**
+ * La orientación de cada cara. **Depende solo de la fila.** En un Miura una
+ * fila es una tira continua: todas las caras de la fila se inclinan igual y
+ * reciben la misma luz; lo que alterna son las filas, y el zigzag vive en la
+ * dirección del pliegue, no en el sombreado.
+ *
+ * El intento anterior alternaba también por columna, en damero, con el
+ * argumento de que así ninguna cara contigua repetía valor. Es exactamente lo
+ * contrario de un Miura, y era la causa del panal: al poner caras claras y
+ * oscuras alternadas a lo largo de cada fila, sus bordes en zigzag compartidos
+ * se encadenaban dibujando el contorno de un hexágono. Cuatro degradés sobre
+ * una asignación equivocada siguen siendo una asignación equivocada.
+ */
+const facetas: { d: string; cara: number }[] = [];
+for (let j = 0; j < ROWS; j++) {
+  for (let i = 0; i < COLS; i++) {
+    const y0 = j * H;
+    const y1 = (j + 1) * H;
+    const a = i * W + desvio(j);
+    const b = (i + 1) * W + desvio(j);
+    const c = (i + 1) * W + desvio(j + 1);
+    const e = i * W + desvio(j + 1);
+    facetas.push({
+      d: `M${a} ${y0}L${b} ${y0}L${c} ${y1}L${e} ${y1}Z`,
+      cara: j % 2,
+    });
+  }
+}
+
+/** Los pliegues verticales: uno por columna, zigzagueando de arriba abajo. */
+const verticales: { d: string; monte: boolean }[] = [];
+for (let i = 0; i <= COLS; i++) {
+  const puntos = Array.from({ length: ROWS + 1 }, (_, j) => `${i * W + desvio(j)} ${j * H}`);
+  verticales.push({ d: `M${puntos.join('L')}`, monte: i % 2 === 0 });
+}
+---
+
+<div class="lamina" aria-hidden="true">
+  <svg
+    class="lamina-campo"
+    viewBox={`0 0 ${ancho} ${alto}`}
+    preserveAspectRatio="xMidYMid slice"
+    fill="none"
+  >
+    <defs>
+      <!--
+        Un degradé por orientación. Una cara de papel plegado no es un plano
+        mate: se aclara hacia la arista que mira a la luz y se apaga hacia la
+        que se hunde. Sin esto las facetas son polígonos de color y se ven
+        como un mosaico.
+      -->
+      <!-- La tira que mira a la luz: se aclara hacia la arista de arriba. -->
+      <linearGradient id="cara-0" x1="0" y1="0" x2="0.28" y2="1">
+        <stop offset="0" stop-color="#2b2318"></stop>
+        <stop offset="1" stop-color="#191410"></stop>
+      </linearGradient>
+      <!-- La tira que se hunde: arranca oscura y se apaga hacia abajo. -->
+      <linearGradient id="cara-1" x1="0" y1="0" x2="0.28" y2="1">
+        <stop offset="0" stop-color="#13100c"></stop>
+        <stop offset="1" stop-color="#090705"></stop>
+      </linearGradient>
+
+      <!-- El grano del papel. Ruido fractal de frecuencia alta, desaturado. -->
+      <filter id="grano" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="7"></feTurbulence>
+        <feColorMatrix
+          type="matrix"
+          values="0 0 0 0 0.82
+                  0 0 0 0 0.74
+                  0 0 0 0 0.58
+                  0 0 0 0.5 0"></feColorMatrix>
+      </filter>
+    </defs>
+
+    <!-- 1. Las facetas -->
+    {facetas.map((f) => <path d={f.d} fill={`url(#cara-${f.cara})`} />)}
+
+    <!-- 2. El grano, sobre las caras y debajo de los pliegues. -->
+    <rect width={ancho} height={alto} filter="url(#grano)" class="lamina-grano"></rect>
+
+    <!-- 3a. Pliegues horizontales: rectos, y todos de monte. -->
+    {
+      Array.from({ length: ROWS + 1 }, (_, j) => (
+        <path
+          d={`M0 ${j * H}L${ancho} ${j * H}`}
+          stroke="var(--color-monte)"
+          stroke-width="1"
+          stroke-opacity="0.2"
+        />
+      ))
+    }
+
+    <!-- 3b. Pliegues verticales: zigzag, alternando monte y valle. El valle va
+         punteado, que es como se distingue de un monte en un plano de plegado. -->
+    {
+      verticales.map((v) =>
+        v.monte ? (
+          <path d={v.d} stroke="var(--color-monte)" stroke-width="1" stroke-opacity="0.26" />
+        ) : (
+          <path
+            d={v.d}
+            stroke="var(--color-valle)"
+            stroke-width="1"
+            stroke-opacity="0.34"
+            stroke-dasharray="8 10"
+          />
+        ),
+      )
+    }
+  </svg>
+
+  <!-- 4. La luz rasante y el canto oscuro. -->
+  <div class="lamina-luz"></div>
+</div>
+
+<style>
+  .lamina {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: var(--color-lamina);
+    pointer-events: none;
+  }
+
+  .lamina-campo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    /* Sin opacidad global. El contraste del campo se decide en los valores de
+       cada cara, que es donde se decide en una lámina de verdad; apagarlo todo
+       por igual fue lo que la primera versión hizo y lo que la dejó en panal. */
+  }
+
+  .lamina-grano {
+    mix-blend-mode: overlay;
+    opacity: 0.16;
+  }
+
+  .lamina-luz {
+    position: absolute;
+    inset: 0;
+    /* Una sola fuente. La versión anterior tenía dos y eso aplana justamente
+       el rasante que el material necesita para leerse. */
+    background:
+      radial-gradient(
+        68rem 46rem at 10% -10%,
+        color-mix(in oklab, var(--color-ambar) 20%, transparent),
+        transparent 66%
+      ),
+      radial-gradient(125% 95% at 45% 42%, transparent 34%, var(--color-lamina-honda) 100%);
+  }
+
+  /* En papel no existe. */
+  @media print {
+    .lamina {
+      display: none !important;
+    }
+  }
+</style>

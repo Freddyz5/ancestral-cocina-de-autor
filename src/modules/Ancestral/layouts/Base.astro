@@ -1,0 +1,65 @@
+---
+import '../../../styles/global.css';
+import { SITIO } from '../constants/config';
+
+interface Props {
+  titulo?: string;
+  descripcion?: string;
+}
+
+const { titulo = SITIO.titulo, descripcion = SITIO.descripcion } = Astro.props;
+const canonica = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="es-EC">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titulo}</title>
+    <meta name="description" content={descripcion} />
+    <link rel="canonical" href={canonica} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#100D0A" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={titulo} />
+    <meta property="og:description" content={descripcion} />
+    <meta property="og:locale" content="es_EC" />
+    <meta property="og:site_name" content={SITIO.nombre} />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body>
+    <!--
+      THESIS: El presupuesto es una lámina Miura — un paquete de oro que se
+      despliega en un campo de facetas enlazadas, y la cadena de `requiere` es
+      el grafo de pliegues: soltar una pieza colapsa la rama entera que cuelga
+      de ella. Rechaza el cotizador SaaS de tarjetas con switch y total al pie.
+      OWN-WORLD: Lámina #100d0a de oro visto por su cara oscura; facetas #17130f
+      que suben a #201a14 al recibir luz. Pliegue monte: filete de oro #d8a83c
+      encendido. Pliegue valle: filete ceniza #6b6257 punteado. Oro #d8a83c–
+      #f5dc7a solo en acción y en faceta desplegada. Texto hueso #ede4d2.
+      Geometría de paralelogramo a −11°: botones sesgados, chaflán arriba a la
+      derecha en todo bloque. Big Shoulders en versales, Azeret Mono en toda
+      cifra medida, Asap en prosa.
+      STORY: El chef ve su presupuesto con la forma de una lámina de precisión,
+      despliega y pliega piezas, ve moverse a la vez el total y la superficie
+      desplegada, y se lleva el enlace o la hoja impresa.
+      FIRST VIEWPORT: Campo de pliegues a sangre con luz rasante desde arriba a
+      la izquierda; el lockup dorado centrado como el paquete cerrado; debajo el
+      titular en versales y la ficha de emisión en mono; y ya entrando en cuadro
+      la primera faceta desplegada de la Fase 1.
+      FORM: Lámina desplegable Miura — retador elegido por el usuario por encima
+      de la dirección asignada (el menú degustación), seed feb92e60. La lámina
+      se invierte de blanco mate a oro oscuro para respetar el compromiso de
+      marca negro+oro, y el azul de valle del original pasa a ceniza.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+    -->
+    <a
+      href="#contenido"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-oro focus:px-4 focus:py-3 focus:text-lamina"
+      >Saltar al contenido</a
+    >
+    <slot />
+  </body>
+</html>

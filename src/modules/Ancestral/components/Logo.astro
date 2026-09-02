@@ -1,0 +1,88 @@
+---
+/**
+ * El logotipo de Ancestral, recortado de marca/ (la captura del lockup sobre
+ * negro). No hay vector: el lettering es un script con bisel dibujado a mano y
+ * redibujarlo sería rediseñar la marca, que PRODUCT.md prohíbe.
+ *
+ * El recorte viene sobre negro y se compone con `mix-blend-mode: screen`: sobre
+ * la lámina oscura el negro del recorte desaparece y solo queda el oro. Por eso
+ * el logotipo no puede ir sobre una superficie clara sin cambiar de técnica.
+ *
+ * Si aparece el original en vector, reemplaza estas imágenes — no lo rediseñes.
+ */
+import { SITIO } from '../constants/config';
+
+interface Props {
+  /** `sello` es el lockup completo; `fila` es la versión chica de cabecera. */
+  direccion?: 'sello' | 'fila';
+  /** Muestra la firma manuscrita del chef bajo el lockup. */
+  firma?: boolean;
+  class?: string;
+}
+
+const { direccion = 'sello', firma = false, class: clase = '' } = Astro.props;
+const alt = `${SITIO.arco} · ${SITIO.nombre} · ${SITIO.descriptor}`;
+---
+
+{
+  direccion === 'fila' ? (
+    <span class:list={['inline-flex items-center gap-2.5', clase]}>
+      <img
+        src="/marca/ancestral-lockup.png"
+        alt={alt}
+        width="700"
+        height="302"
+        class="logo-foil h-9 w-auto sm:h-11"
+        loading="eager"
+        decoding="async"
+      />
+    </span>
+  ) : (
+    <span class:list={['inline-flex flex-col items-center', clase]}>
+      <img
+        src="/marca/ancestral-lockup.png"
+        alt={alt}
+        width="700"
+        height="302"
+        class="logo-foil w-full max-w-[19rem] sm:max-w-[23rem]"
+        loading="eager"
+        decoding="async"
+      />
+      {firma && (
+        <img
+          src="/marca/ancestral-firma.png"
+          alt={SITIO.chef}
+          width="560"
+          height="97"
+          class="logo-foil mt-3 w-full max-w-[13rem] sm:max-w-[15rem]"
+          loading="lazy"
+          decoding="async"
+        />
+      )}
+    </span>
+  )
+}
+
+<style>
+  .logo-foil {
+    /* `lighten`, no `screen`: el recorte trae su fondo negro pegado y con
+       `screen` esa caja levantaba el fondo lo justo para verse. Con `lighten`
+       cada píxel toma el más claro de los dos, así que el negro del recorte
+       desaparece del todo y los pliegues del fondo siguen corriendo por
+       detrás del lettering. */
+    mix-blend-mode: lighten;
+  }
+
+  /* En papel el documento se imprime sobre blanco: ahí `lighten` borraría el
+     logotipo entero contra la hoja, así que se apaga y el recorte va con su
+     fondo negro, que en tinta se lee como la placa del logotipo. */
+  @media print {
+    .logo-foil {
+      mix-blend-mode: normal;
+      /* Y a tamaño de membrete. A escala de paquete, la placa negra del
+         recorte se convierte en un rectángulo sólido en la cabecera de un
+         documento que alguien va a firmar, y en un gasto de tinta. */
+      max-width: 44mm !important;
+    }
+  }
+</style>

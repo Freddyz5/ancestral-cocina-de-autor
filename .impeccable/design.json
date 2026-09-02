@@ -1,0 +1,283 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-01T21:55:53.000Z",
+  "title": "Design System: Ancestral",
+  "extensions": {
+    "colorMeta": {
+      "lamina": {
+        "role": "neutral",
+        "displayName": "Lámina",
+        "canonical": "#100d0a",
+        "tonalRamp": [
+          "#030202",
+          "#050403",
+          "#080605",
+          "#0b0907",
+          "#0e0b08",
+          "#100d0a",
+          "#14100c",
+          "#191410"
+        ]
+      },
+      "lamina-honda": {
+        "role": "neutral",
+        "displayName": "Lámina honda",
+        "canonical": "#0a0806",
+        "tonalRamp": [
+          "#020101",
+          "#030302",
+          "#050403",
+          "#070504",
+          "#080705",
+          "#0a0806",
+          "#0c0a07",
+          "#100c09"
+        ]
+      },
+      "faceta": {
+        "role": "neutral",
+        "displayName": "Faceta",
+        "canonical": "#17130f",
+        "tonalRamp": [
+          "#040303",
+          "#070605",
+          "#0b0907",
+          "#100d0a",
+          "#14100d",
+          "#17130f",
+          "#1c1712",
+          "#241d17"
+        ]
+      },
+      "faceta-alta": {
+        "role": "neutral",
+        "displayName": "Faceta alta",
+        "canonical": "#201a14",
+        "tonalRamp": [
+          "#060504",
+          "#0a0806",
+          "#0f0c0a",
+          "#16120e",
+          "#1b1611",
+          "#201a14",
+          "#272018",
+          "#32281f"
+        ]
+      },
+      "faceta-plegada": {
+        "role": "neutral",
+        "displayName": "Faceta plegada",
+        "canonical": "#131009",
+        "tonalRamp": [
+          "#030302",
+          "#060503",
+          "#090804",
+          "#0d0b06",
+          "#100e08",
+          "#131009",
+          "#17140b",
+          "#1d190e"
+        ]
+      },
+      "monte": {
+        "role": "secondary",
+        "displayName": "Pliegue monte",
+        "canonical": "#d8a83c",
+        "tonalRamp": [
+          "#271e0b",
+          "#453613",
+          "#68511d",
+          "#937229",
+          "#b88f33",
+          "#d8a83c",
+          "#ffcd49",
+          "#ffff5d"
+        ]
+      },
+      "valle": {
+        "role": "secondary",
+        "displayName": "Pliegue valle",
+        "canonical": "#6b6257",
+        "tonalRamp": [
+          "#131210",
+          "#221f1c",
+          "#332f2a",
+          "#49433b",
+          "#5b534a",
+          "#6b6257",
+          "#83786a",
+          "#a69887"
+        ]
+      },
+      "oro": {
+        "role": "primary",
+        "displayName": "Oro",
+        "canonical": "#d8a83c",
+        "tonalRamp": [
+          "#271e0b",
+          "#453613",
+          "#68511d",
+          "#937229",
+          "#b88f33",
+          "#d8a83c",
+          "#ffcd49",
+          "#ffff5d"
+        ]
+      },
+      "oro-claro": {
+        "role": "primary",
+        "displayName": "Oro claro",
+        "canonical": "#f5dc7a",
+        "tonalRamp": [
+          "#2c2816",
+          "#4e4627",
+          "#766a3b",
+          "#a79653",
+          "#d0bb68",
+          "#f5dc7a",
+          "#ffff95",
+          "#ffffbd"
+        ]
+      },
+      "oro-hondo": {
+        "role": "primary",
+        "displayName": "Oro hondo",
+        "canonical": "#a87c22",
+        "tonalRamp": [
+          "#1e1606",
+          "#36280b",
+          "#513c10",
+          "#725417",
+          "#8f691d",
+          "#a87c22",
+          "#cd9729",
+          "#ffc035"
+        ]
+      },
+      "oro-luz": {
+        "role": "primary",
+        "displayName": "Oro luz",
+        "canonical": "#fff0b8",
+        "tonalRamp": [
+          "#2e2b21",
+          "#524d3b",
+          "#7a7358",
+          "#ada37d",
+          "#d9cc9c",
+          "#fff0b8",
+          "#ffffe0",
+          "#ffffff"
+        ]
+      },
+      "ambar": {
+        "role": "primary",
+        "displayName": "Ámbar",
+        "canonical": "#e08a1e",
+        "tonalRamp": [
+          "#281905",
+          "#482c0a",
+          "#6c420e",
+          "#985e14",
+          "#be751a",
+          "#e08a1e",
+          "#ffa825",
+          "#ffd62e"
+        ]
+      },
+      "hueso": {
+        "role": "neutral",
+        "displayName": "Hueso",
+        "canonical": "#ede4d2",
+        "tonalRamp": [
+          "#2b2926",
+          "#4c4943",
+          "#726d65",
+          "#a19b8f",
+          "#c9c2b2",
+          "#ede4d2",
+          "#ffffff",
+          "#ffffff"
+        ]
+      },
+      "hueso-suave": {
+        "role": "neutral",
+        "displayName": "Hueso suave",
+        "canonical": "#a9a094",
+        "tonalRamp": [
+          "#1e1d1b",
+          "#36332f",
+          "#514d47",
+          "#736d65",
+          "#90887e",
+          "#a9a094",
+          "#cec3b5",
+          "#fff8e5"
+        ]
+      },
+      "ceniza": {
+        "role": "neutral",
+        "displayName": "Ceniza",
+        "canonical": "#6b6257",
+        "tonalRamp": [
+          "#131210",
+          "#221f1c",
+          "#332f2a",
+          "#49433b",
+          "#5b534a",
+          "#6b6257",
+          "#83786a",
+          "#a69887"
+        ]
+      },
+      "papel": {
+        "role": "neutral",
+        "displayName": "Papel",
+        "canonical": "#f7f4ec",
+        "tonalRamp": [
+          "#2c2c2a",
+          "#4f4e4c",
+          "#777571",
+          "#a8a6a0",
+          "#d2cfc9",
+          "#f7f4ec",
+          "#ffffff",
+          "#ffffff"
+        ]
+      },
+      "tinta": {
+        "role": "neutral",
+        "displayName": "Tinta",
+        "canonical": "#14110d",
+        "tonalRamp": [
+          "#040302",
+          "#060504",
+          "#0a0806",
+          "#0e0c09",
+          "#110e0b",
+          "#14110d",
+          "#181510",
+          "#1f1a14"
+        ]
+      }
+    },
+    "geometry": {
+      "sesgo": "-11deg",
+      "chaflan": "0.85rem",
+      "borderRadius": "0"
+    },
+    "elevation": {
+      "estrategia": "luz sobre la cara, no sombra proyectada",
+      "escalones": [
+        "faceta-plegada",
+        "faceta",
+        "faceta-alta",
+        "arista de oro"
+      ],
+      "excepcion": "#resumen-total, unica pieza en otro plano: sombra desplazada + backdrop-filter"
+    },
+    "motion": {
+      "ease-pliegue": "cubic-bezier(0.16, 1, 0.3, 1)",
+      "momento": "despliegue diagonal por --orden, 45ms de paso"
+    }
+  }
+}

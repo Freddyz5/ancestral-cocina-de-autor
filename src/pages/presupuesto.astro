@@ -1,0 +1,1342 @@
+---
+/**
+ * Presupuesto interactivo — landing + carta digital para Ancestral, armado
+ * como una lámina Miura: cada pieza es una faceta que se despliega o se deja
+ * plegada, y la cadena de `requiere` es el grafo de pliegues — soltar «carta
+ * pública» colapsa de golpe todo lo que cuelga de ella.
+ *
+ * La tarifa por día no se toca desde acá: vive en TARIFA_POR_DIA, en los datos.
+ * Es una herramienta para la reunión, no una página del sitio público: no está
+ * enlazada desde la navegación.
+ *
+ * La selección entera vive en la URL, así que al terminar la reunión se copia
+ * el enlace y ése es el presupuesto acordado — sin captura ni PDF de por medio.
+ */
+import Base from '../modules/Ancestral/layouts/Base.astro';
+import Lamina from '../modules/Ancestral/components/Lamina.astro';
+import Logo from '../modules/Ancestral/components/Logo.astro';
+import { SITIO } from '../modules/Ancestral/constants/config';
+import {
+  FASES_PRESUPUESTO,
+  COSTOS_RECURRENTES,
+  NO_INCLUYE,
+  NOMBRE_POR_ID,
+  TARIFA_POR_DIA,
+  PROPUESTA,
+} from '../modules/Ancestral/data/presupuesto';
+
+/** Total de piezas de la lámina: el denominador de la superficie desplegada. */
+const TOTAL_PIEZAS = FASES_PRESUPUESTO.reduce((n, fase) => n + fase.items.length, 0);
+---
+
+<Base
+  titulo={`Cotización — ${SITIO.nombre}`}
+  descripcion="Landing y carta digital para Ancestral, por piezas."
+>
+  <Lamina />
+
+  <main id="contenido" class="relative min-h-screen px-5 pt-8 pb-24 sm:px-8 sm:pt-12 sm:pb-28">
+    <div class="mx-auto max-w-3xl">
+      <a
+          href="/"
+          class="volver rotulo inline-flex items-center gap-1.5 transition-colors duration-200 hover:text-oro-claro"
+        >
+          <svg
+            class="h-3 w-3"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M9.5 3 4.5 8l5 5" />
+          </svg>
+          Volver
+        </a>
+
+      <!--
+        EL PAQUETE CERRADO. La lámina Miura empieza plegada en un paquete de
+        oro, y eso es con lo que abre la página: el lockup centrado a escala de
+        paquete sobre el campo de pliegues. Debajo, el titular en versales y la
+        ficha de emisión rotulada como en un plano de plegado. De acá para
+        abajo, todo está desplegado.
+      -->
+      <header class="mt-7 sm:mt-10">
+        <div class="flex flex-col items-center text-center">
+          <Logo direccion="sello" class="max-w-[15rem] sm:max-w-[18rem]" />
+          <h1 class="mt-6 text-monumental font-700 text-hueso">
+            Landing<span class="text-oro"> + </span>Carta digital
+          </h1>
+        </div>
+
+        <div class="mt-7 h-px w-full bg-linear-to-r from-transparent via-oro/55 to-transparent"></div>
+
+        <dl class="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
+          <div>
+            <dt class="rotulo">Para</dt>
+            <dd class="mt-1 font-texto text-menudo text-hueso">{PROPUESTA.cliente}</dd>
+          </div>
+          <div>
+            <dt class="rotulo">Por</dt>
+            <dd class="mt-1 font-texto text-menudo text-hueso">{PROPUESTA.preparadoPor}</dd>
+          </div>
+          <div>
+            <dt class="rotulo">Emisión</dt>
+            <dd id="emision" class="cifra mt-1 text-menudo text-hueso"></dd>
+          </div>
+          <div>
+            <dt class="rotulo">Validez</dt>
+            <dd class="cifra mt-1 text-menudo text-hueso">{PROPUESTA.validezDias} días</dd>
+          </div>
+        </dl>
+
+        <p class="solo-pantalla mt-5 max-w-[54ch] font-texto text-cuerpo text-hueso/75 sm:text-guia">
+          Cada pieza es independiente: desplegá lo que quieras y dejá plegado lo que no. Las piezas
+          que dependen de otra se colapsan solas cuando su requisito se pliega, y el total de abajo
+          se recalcula al instante.
+        </p>
+      </header>
+
+      <!--
+        EL DOCUMENTO IMPRESO. En pantalla no existe: la página es la herramienta
+        de la reunión, y esto es lo que se lleva el cliente. Las filas están
+        todas en el marcado desde el build; el guion solo tapa las que no
+        corresponden y completa días y valores.
+      -->
+      <section id="documento" class="solo-impresion mt-6">
+        <div class="flex items-end justify-between gap-6 border-b-2 border-tinta/30 pb-3">
+          <p class="rotulo">Cotización</p>
+          <p id="doc-numero" class="cifra text-menudo font-600"></p>
+        </div>
+
+        <table class="doc-tabla mt-6 w-full">
+          <thead>
+            <tr>
+              <th class="rotulo doc-cabecera text-left">Concepto</th>
+              <th class="rotulo doc-cabecera doc-numero">Días</th>
+              <th class="rotulo doc-cabecera doc-numero">Valor</th>
+            </tr>
+          </thead>
+          {
+            FASES_PRESUPUESTO.map((fase) => (
+              <tbody data-doc-fase>
+                <tr>
+                  <th colspan="3" class="doc-fase font-display text-rubro font-600">
+                    {fase.nombre}
+                  </th>
+                </tr>
+                {fase.items.flatMap((item) =>
+                  item.tipo === 'opcion'
+                    ? item.opciones.map((opcion) => (
+                        <tr data-doc-fila data-id={opcion.id}>
+                          <td class="doc-concepto">{opcion.nombre}</td>
+                          <td data-doc-dias class="doc-concepto doc-numero cifra" />
+                          <td data-doc-valor class="doc-concepto doc-numero cifra" />
+                        </tr>
+                      ))
+                    : [
+                        <tr data-doc-fila data-id={item.id}>
+                          <td class="doc-concepto">
+                            {item.nombre}
+                            <span data-doc-cantidad class="cifra" />
+                          </td>
+                          <td data-doc-dias class="doc-concepto doc-numero cifra" />
+                          <td data-doc-valor class="doc-concepto doc-numero cifra" />
+                        </tr>,
+                      ],
+                )}
+                <tr data-doc-subtotal>
+                  <td class="doc-concepto doc-subtotal">Subtotal</td>
+                  <td data-doc-dias class="doc-concepto doc-numero doc-subtotal cifra" />
+                  <td data-doc-valor class="doc-concepto doc-numero doc-subtotal cifra" />
+                </tr>
+              </tbody>
+            ))
+          }
+          <tfoot>
+            <tr class="doc-total">
+              <td>Total estimado</td>
+              <td id="doc-total-dias" class="doc-numero cifra"></td>
+              <td id="doc-total-valor" class="doc-numero cifra"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </section>
+
+      <!-- LAS FACETAS. En el documento impreso las reemplaza la tabla. -->
+      <div class="solo-pantalla">
+        {
+          FASES_PRESUPUESTO.map((fase, indice) => (
+            <section class="mt-9">
+              <div class="flex items-baseline justify-between gap-4 border-b border-valle/45 pb-2">
+                <h2 class="text-titulo font-600 text-hueso">{fase.nombre}</h2>
+                <span data-fase-total data-fase={indice} class="id-pliegue cifra shrink-0" />
+              </div>
+
+              {fase.nota && (
+                <p class="mt-3 max-w-[58ch] font-texto text-menudo leading-relaxed text-hueso-suave">
+                  {fase.nota}
+                </p>
+              )}
+
+              <div class="mt-4 space-y-2">
+                {fase.items.map((item, orden) =>
+                  item.tipo === 'toggle' ? (
+                    <button
+                      type="button"
+                      data-item
+                      data-tipo="toggle"
+                      data-fase={indice}
+                      data-id={item.id}
+                      data-nombre={item.nombre}
+                      data-dias={item.dias}
+                      data-marcada={item.marcada ? 'true' : 'false'}
+                      data-requiere={item.requiere}
+                      style={`--orden:${indice * 3 + orden}`}
+                      class:list={[
+                        'faceta faceta-pieza pliegue-monte w-full px-5 py-4 text-left',
+                        item.marcada && 'desplegada',
+                      ]}
+                    >
+                      <span class="flex items-start gap-3.5">
+                        <span class="marca-pliegue mt-0.5 shrink-0" aria-hidden="true">
+                          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3.5 8.4l3.1 3.1 6-6.6" />
+                          </svg>
+                        </span>
+
+                        <span class="min-w-0 flex-1">
+                          <span class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                            <span class="font-display text-rubro font-600 uppercase text-hueso">
+                              {item.nombre}
+                            </span>
+                            <span data-precio-linea class="cifra shrink-0 text-menudo text-hueso-suave" />
+                          </span>
+                          <span class="mt-1.5 block max-w-[58ch] font-texto text-cuerpo text-hueso/70">
+                            {item.descripcion}
+                            {item.variantes &&
+                              Object.entries(item.variantes).map(([clave, texto]) => (
+                                <span data-variante={clave} hidden class="text-oro-claro">
+                                  {' '}
+                                  {texto}
+                                </span>
+                              ))}
+                          </span>
+                          <span data-bloqueo hidden class="rotulo mt-2 inline-block text-ambar">
+                            Necesita · {item.requiere ? NOMBRE_POR_ID[item.requiere] : ''}
+                          </span>
+                        </span>
+                      </span>
+                    </button>
+                  ) : item.tipo === 'contador' ? (
+                    <div
+                      data-item
+                      data-tipo="contador"
+                      data-fase={indice}
+                      data-id={item.id}
+                      data-nombre={item.nombre}
+                      data-dias-unidad={item.diasPorUnidad}
+                      data-valor={item.inicial}
+                      data-min={item.min}
+                      data-max={item.max}
+                      data-singular={item.unidad.singular}
+                      data-plural={item.unidad.plural}
+                      data-requiere={item.requiere}
+                      style={`--orden:${indice * 3 + orden}`}
+                      class:list={[
+                        'faceta faceta-pieza pliegue-monte w-full px-5 py-4',
+                        item.inicial > 0 && 'desplegada',
+                      ]}
+                    >
+                      <div class="flex items-start gap-3.5">
+                        <span class="marca-pliegue mt-0.5 shrink-0" aria-hidden="true">
+                          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+                            <path d="M3.5 8h9" />
+                          </svg>
+                        </span>
+                        <div class="min-w-0 flex-1">
+                      <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                        <p class="font-display text-rubro font-600 uppercase text-hueso">
+                          {item.nombre}
+                        </p>
+                        <p data-precio-linea class="cifra shrink-0 text-menudo text-hueso-suave" />
+                      </div>
+                      <p class="mt-1.5 max-w-[58ch] font-texto text-cuerpo text-hueso/70">
+                        {item.descripcion}
+                      </p>
+                      <p data-bloqueo hidden class="rotulo mt-2 text-ambar">
+                        Necesita · {item.requiere ? NOMBRE_POR_ID[item.requiere] : ''}
+                      </p>
+
+                      <div class="mt-3.5 flex items-center gap-2">
+                        <button
+                          type="button"
+                          data-paso="-1"
+                          aria-label={`Quitar ${item.unidad.singular}`}
+                          class="paso-boton"
+                        >
+                          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                            <path d="M4 8h8" />
+                          </svg>
+                        </button>
+                        <span
+                          data-valor-texto
+                          class="cifra min-w-[2.5rem] text-center text-rubro font-600 text-hueso"
+                        ></span>
+                        <button
+                          type="button"
+                          data-paso="1"
+                          aria-label={`Agregar ${item.unidad.singular}`}
+                          class="paso-boton"
+                        >
+                          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                            <path d="M4 8h8M8 4v8" />
+                          </svg>
+                        </button>
+                      </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      data-item
+                      data-tipo="grupo"
+                      data-fase={indice}
+                      data-id={item.id}
+                      data-inicial={item.inicial}
+                      data-requiere={item.requiere}
+                      style={`--orden:${indice * 3 + orden}`}
+                      role="radiogroup"
+                      aria-labelledby={`pregunta-${item.id}`}
+                      class="faceta faceta-grupo w-full px-5 py-4"
+                    >
+                      <p id={`pregunta-${item.id}`} class="font-display text-rubro font-600 uppercase text-hueso">
+                        {item.pregunta}
+                      </p>
+                      <p class="rotulo mt-1">Se elige una</p>
+                      <p data-bloqueo hidden class="rotulo mt-2 text-ambar">
+                        Necesita · {item.requiere ? NOMBRE_POR_ID[item.requiere] : ''}
+                      </p>
+
+                      <div class="mt-3.5 space-y-1.5">
+                        {item.opciones.map((opcion) => (
+                          <button
+                            type="button"
+                            data-opcion
+                            role="radio"
+                            data-grupo={item.id}
+                            data-id={opcion.id}
+                            data-nombre={opcion.nombre}
+                            data-dias={opcion.dias}
+                            class:list={[
+                              'opcion-boton w-full px-4 py-3 text-left',
+                              opcion.id === item.inicial && 'opcion-elegida',
+                            ]}
+                          >
+                            <span class="flex items-start gap-3">
+                              <span class="marca-valle mt-1 shrink-0" aria-hidden="true" />
+                              <span class="min-w-0 flex-1">
+                                <span class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                                  <span class="font-display text-cuerpo font-600 uppercase tracking-wide text-hueso">
+                                    {opcion.nombre}
+                                    {opcion.recomendada && (
+                                      <span class="marca-recomendada">Recomendada</span>
+                                    )}
+                                  </span>
+                                  <span data-precio-linea class="cifra shrink-0 text-menudo text-hueso-suave" />
+                                </span>
+                                <span class="mt-1 block max-w-[56ch] font-texto text-menudo leading-relaxed text-hueso/75">
+                                  {opcion.descripcion}
+                                </span>
+                              </span>
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ),
+                )}
+              </div>
+            </section>
+          ))
+        }
+      </div>
+
+      <!-- Condiciones. Dos facetas quietas: no se despliegan ni suman. -->
+      <div class="mt-11 grid gap-2 sm:grid-cols-2">
+        <div class="faceta px-5 py-4">
+          <p class="rotulo">Costos externos, por cuenta del cliente</p>
+          <ul class="mt-3 space-y-2">
+            {
+              COSTOS_RECURRENTES.map((costo) => (
+                <li class="flex gap-2.5 font-texto text-menudo leading-relaxed text-hueso/70">
+                  <span class="marca-vineta" aria-hidden="true" />
+                  <span>{costo}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <div class="faceta px-5 py-4">
+          <p class="rotulo">Lo que este presupuesto no incluye</p>
+          <ul class="mt-3 space-y-2">
+            {
+              NO_INCLUYE.map((punto) => (
+                <li class="flex gap-2.5 font-texto text-menudo leading-relaxed text-hueso/70">
+                  <span class="marca-vineta" aria-hidden="true" />
+                  <span>{punto}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+
+      <!--
+        EL TOTAL. La tira de facetas de la izquierda es la superficie
+        desplegada: una faceta encendida por pieza incluida, apagada por pieza
+        plegada. Dice de un vistazo cuánto de la lámina está abierto, que es lo
+        mismo que dice el precio pero se lee sin leer un número.
+      -->
+      <div
+        id="resumen-total"
+        class="solo-pantalla faceta sticky bottom-4 z-10 mt-9 flex items-center justify-between gap-x-4 px-4 py-3.5 sm:gap-x-6 sm:px-5 sm:py-4"
+        role="status"
+        aria-live="polite"
+      >
+        <div class="min-w-0">
+          <div id="tira-superficie" class="tira-superficie" aria-hidden="true">
+            {Array.from({ length: TOTAL_PIEZAS }, () => <span class="tira-faceta" />)}
+          </div>
+          <p id="resumen-cantidad" class="rotulo mt-2.5"></p>
+        </div>
+        <p id="resumen-precio" class="cifra shrink-0 text-titulo font-700 text-oro-claro"></p>
+      </div>
+
+      <div id="acciones" class="mt-5 flex flex-wrap items-center justify-center gap-2.5">
+        <button type="button" id="imprimir" class="boton boton-contorno">
+          <span class="inline-flex items-center gap-2">
+            <svg
+              class="h-3.5 w-3.5"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4.5 6V2.5h7V6" />
+              <path d="M4.5 12h-2V6h11v6h-2" />
+              <path d="M4.5 9.5h7v4h-7z" />
+            </svg>
+            Imprimir propuesta
+          </span>
+        </button>
+        <button type="button" id="guardar" class="boton boton-oro">
+          <span class="inline-flex items-center gap-2">
+            <svg
+              class="h-3.5 w-3.5"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2.5 8.5h11" />
+              <path d="M6.5 4.5h-4v8h11v-8h-4" />
+              <path d="M8 1.5v7M5.6 6.2 8 8.6l2.4-2.4" />
+            </svg>
+            <span id="guardar-texto">Copiar el enlace</span>
+          </span>
+        </button>
+      </div>
+
+      <p class="mt-5 text-center font-texto text-menudo leading-relaxed text-hueso-suave">
+        La producción se ejecuta en horario de jornada laboral y días hábiles. El cronograma final
+        depende de los tiempos de revisión y aprobación del cliente.
+      </p>
+
+      <section class="solo-impresion doc-firmas mt-10">
+        <div>
+          <div class="doc-firma"></div>
+          <p class="rotulo mt-2">Por el cliente</p>
+          <p class="mt-0.5 font-texto text-menudo">{PROPUESTA.cliente}</p>
+        </div>
+        <div>
+          <div class="doc-firma"></div>
+          <p class="rotulo mt-2">Por el desarrollador</p>
+          <p class="mt-0.5 font-texto text-menudo">{PROPUESTA.preparadoPor}</p>
+        </div>
+      </section>
+    </div>
+  </main>
+</Base>
+
+<style>
+  /*
+   * LA FACETA QUE SE DESPLIEGA
+   * Una pieza no elegida no se difumina hasta ser ilegible: sigue plegada en la
+   * lámina, con su cara en sombra y su pliegue de valle marcado. Se lee. Lo que
+   * cambia entre plegada y desplegada es la luz que recibe la cara y si su
+   * arista de monte está encendida — que es exactamente lo que cambia en una
+   * lámina de verdad.
+   */
+  .faceta-pieza {
+    background: var(--color-faceta-plegada);
+  }
+  /* Solo la pieza que de verdad se pulsa muestra puntero. El contador es un
+     contenedor con dos botones dentro; poner el puntero encima prometía un
+     clic que no existe. */
+  button.faceta-pieza {
+    cursor: pointer;
+  }
+
+  /*
+   * El foco, dentro del chaflán. `outline-offset` pinta el anillo fuera de la
+   * caja y el `clip-path` de `.faceta` lo recortaba entero: el foco de teclado
+   * era invisible en todas las piezas de la página. Un aro interior sí queda
+   * dentro del recorte.
+   */
+  .faceta:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--color-oro-claro);
+  }
+  .faceta-pieza:hover:not(.colapsada) {
+    background: var(--color-faceta-alta);
+  }
+  .faceta-pieza.desplegada {
+    background: var(--color-faceta);
+  }
+
+  /* El valle de la pieza plegada: el canto que quedó en sombra. Se apaga
+     cuando la pieza se despliega y el monte toma su lugar. */
+  .faceta-pieza::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 2px;
+    /* Un borde punteado de verdad, no guiones simulados con un degradé
+       repetido: es lo que esta arista es —el canto en sombra de un pliegue de
+       valle— y así el navegador reparte los guiones solo. */
+    width: 0;
+    border-left: 2px dashed var(--color-valle);
+    transition: opacity 0.3s var(--ease-pliegue);
+  }
+  .faceta-pieza.desplegada::after {
+    opacity: 0;
+  }
+
+  /*
+   * LA MARCA DE PLIEGUE
+   * El indicador de estado: un paralelogramo con el mismo sesgo que los
+   * botones. Vacío cuando la pieza está plegada, lleno de oro cuando se
+   * despliega. No es un checkbox redondeado — no hay una sola esquina
+   * redondeada en toda esta lámina.
+   */
+  .marca-pliegue {
+    display: grid;
+    place-items: center;
+    width: 1.15rem;
+    height: 1.15rem;
+    transform: skewX(var(--sesgo));
+    box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--color-hueso) 32%, transparent);
+    transition:
+      background-color 0.22s var(--ease-pliegue),
+      box-shadow 0.22s var(--ease-pliegue);
+  }
+  .marca-pliegue svg {
+    width: 0.8rem;
+    height: 0.8rem;
+    color: var(--color-lamina);
+    opacity: 0;
+    transform: skewX(calc(var(--sesgo) * -1));
+    transition: opacity 0.22s var(--ease-pliegue);
+  }
+  .desplegada .marca-pliegue {
+    background: var(--color-oro);
+    box-shadow: inset 0 0 0 1.5px var(--color-oro-claro);
+  }
+  .desplegada .marca-pliegue svg {
+    opacity: 1;
+  }
+
+  /*
+   * LA PIEZA COLAPSADA
+   * Su requisito se plegó, así que esta faceta cae plana: pierde el aire
+   * interior y la luz. Sigue en la lámina —no se esconde— porque el cliente
+   * tiene que ver qué se llevó consigo la pieza que acaba de soltar.
+   */
+  .colapsada {
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+    /* Se apaga la SUPERFICIE, no la tinta. Con `opacity: 0.42` sobre toda la
+       pieza la descripción caía a 2,35:1 — justo lo que el comentario de
+       arriba dice que no puede pasar. Ahora la cara se hunde al valor más
+       oscuro de la lámina y el texto conserva su contraste. */
+    background: var(--color-lamina-honda);
+    cursor: not-allowed;
+    transition:
+      padding 0.3s var(--ease-pliegue),
+      background-color 0.3s var(--ease-pliegue);
+  }
+  /* Lo que sí se apaga: el indicador de estado y el precio, que son lo que
+     dejó de aplicarse. El nombre y la descripción no. */
+  .colapsada .marca-pliegue,
+  .colapsada [data-precio-linea] {
+    opacity: 0.4;
+  }
+  .colapsada .paso-boton {
+    opacity: 0.3;
+  }
+
+  /* Los pasos del contador: paralelogramos, como todo control de la lámina. */
+  .paso-boton {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    font-family: var(--font-ficha);
+    font-size: var(--text-cuerpo);
+    color: var(--color-hueso);
+    transform: skewX(var(--sesgo));
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-hueso) 26%, transparent);
+    transition:
+      background-color 0.2s var(--ease-pliegue),
+      color 0.2s var(--ease-pliegue),
+      box-shadow 0.2s var(--ease-pliegue);
+  }
+  .paso-boton span {
+    display: block;
+    transform: skewX(calc(var(--sesgo) * -1));
+  }
+  .paso-boton:hover:not(:disabled) {
+    background: var(--color-oro);
+    color: var(--color-lamina);
+    box-shadow: inset 0 0 0 1px var(--color-oro-claro);
+  }
+  .paso-boton:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /*
+   * EL GRUPO EXCLUYENTE
+   * Un pliegue solo puede doblar hacia un lado: o monte, o valle. El grupo es
+   * esa decisión, y por eso sus opciones no son tarjetas independientes sino
+   * cantos de un mismo pliegue.
+   */
+  .faceta-grupo {
+    background: var(--color-faceta);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-oro) 22%, transparent);
+  }
+
+  .opcion-boton {
+    position: relative;
+    background: color-mix(in oklab, var(--color-lamina) 62%, transparent);
+    transition:
+      background-color 0.2s var(--ease-pliegue),
+      opacity 0.2s var(--ease-pliegue);
+  }
+  .opcion-boton:not(.opcion-elegida) {
+    opacity: 0.82;
+  }
+  .opcion-boton:hover {
+    opacity: 1;
+    background: var(--color-faceta-alta);
+  }
+  .opcion-elegida {
+    background: var(--color-faceta-alta);
+  }
+  .opcion-elegida::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 2px;
+    background: var(--color-oro);
+  }
+
+  /* La marca de la opción: media faceta, llena cuando el pliegue va por ahí. */
+  .marca-valle {
+    width: 0.7rem;
+    height: 0.7rem;
+    transform: skewX(var(--sesgo));
+    box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--color-hueso) 30%, transparent);
+    transition: background-color 0.2s var(--ease-pliegue);
+  }
+  .opcion-elegida .marca-valle {
+    background: var(--color-oro);
+    box-shadow: inset 0 0 0 1.5px var(--color-oro-claro);
+  }
+
+  .marca-recomendada {
+    display: inline-block;
+    margin-left: 0.6rem;
+    padding: 0.12rem 0.5rem;
+    background: var(--color-oro);
+    color: var(--color-lamina);
+    font-family: var(--font-ficha);
+    font-size: var(--text-rotulo);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transform: skewX(var(--sesgo));
+  }
+
+  /* La viñeta de las condiciones: una faceta diminuta, no un punto. */
+  .marca-vineta {
+    flex-shrink: 0;
+    width: 0.38rem;
+    height: 0.38rem;
+    margin-top: 0.62em;
+    background: var(--color-oro-hondo);
+    transform: skewX(var(--sesgo));
+  }
+
+  /*
+   * LA TIRA DE SUPERFICIE
+   * Una faceta por pieza de la lámina. Encendida = desplegada. Es el mismo dato
+   * que el precio, dicho en el material en vez de en dólares.
+   */
+  .tira-superficie {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+  }
+  @media (min-width: 640px) {
+    .tira-faceta {
+      width: 0.6rem;
+      height: 1.1rem;
+    }
+  }
+  .tira-faceta {
+    width: 0.42rem;
+    height: 0.9rem;
+    background: color-mix(in oklab, var(--color-hueso) 14%, transparent);
+    transform: skewX(var(--sesgo));
+    transition: background-color 0.3s var(--ease-pliegue);
+  }
+  .tira-faceta.encendida {
+    background: var(--color-oro);
+  }
+
+  #resumen-cantidad {
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  @media (min-width: 640px) {
+    #resumen-cantidad {
+      letter-spacing: 0.18em;
+    }
+  }
+
+  #resumen-total {
+    background: color-mix(in oklab, var(--color-lamina-honda) 92%, transparent);
+    backdrop-filter: blur(10px);
+    box-shadow:
+      0 2px 4px oklch(0 0 0 / 0.4),
+      0 18px 40px -18px oklch(0 0 0 / 0.8);
+  }
+
+  /*
+   * EL DESPLIEGUE
+   * El único momento de movimiento autoral de la página: al cargar, la lámina
+   * se abre de un tirón. Cada faceta rota sobre su canto superior con un
+   * retardo que avanza en diagonal, que es como se propaga un pliegue Miura de
+   * verdad — no una entrada idéntica por sección.
+   */
+  @keyframes desplegar {
+    from {
+      opacity: 0;
+      transform: perspective(900px) rotateX(-62deg);
+    }
+    to {
+      opacity: 1;
+      transform: perspective(900px) rotateX(0);
+    }
+  }
+  .faceta-pieza,
+  .faceta-grupo {
+    transform-origin: top center;
+    animation: desplegar 0.5s var(--ease-pliegue) both;
+    animation-delay: calc(var(--orden, 0) * 45ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .faceta-pieza,
+    .faceta-grupo {
+      animation: none;
+    }
+  }
+
+  .solo-impresion {
+    display: none;
+  }
+
+  /* ------------------------------------------------------------------------
+   * EL DOCUMENTO IMPRESO
+   * La lámina llevada al papel. Acá se invierte entera: la hoja es la cara
+   * clara del mismo material, porque un presupuesto en oro sobre negro se
+   * imprime como una mancha y nadie lo firma.
+   * --------------------------------------------------------------------- */
+  .doc-tabla {
+    border-collapse: collapse;
+  }
+  .doc-cabecera {
+    padding-bottom: 0.4rem;
+    border-bottom: 1.5px solid color-mix(in srgb, var(--color-tinta) 30%, transparent);
+  }
+  .doc-fase {
+    padding: 0.95rem 0 0.3rem;
+    text-align: left;
+  }
+  .doc-concepto {
+    padding: 0.42rem 0;
+    font-family: var(--font-texto);
+    font-size: var(--text-menudo);
+    line-height: 1.4;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-tinta) 14%, transparent);
+    vertical-align: top;
+  }
+  .doc-numero {
+    width: 5.5rem;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .doc-subtotal {
+    font-weight: 600;
+    border-bottom: 1.5px solid color-mix(in srgb, var(--color-tinta) 30%, transparent);
+  }
+  .doc-total td {
+    padding: 0.7rem 0.9rem;
+    background: var(--color-tinta);
+    color: var(--color-papel);
+    font-family: var(--font-display);
+    font-size: var(--text-rubro);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .doc-firma {
+    height: 2.6rem;
+    border-bottom: 1.5px solid color-mix(in srgb, var(--color-tinta) 50%, transparent);
+  }
+  [data-doc-fila][hidden],
+  [data-doc-fase][hidden] {
+    display: none;
+  }
+
+  @media print {
+    .solo-impresion {
+      display: block;
+    }
+    .doc-firmas {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+      break-inside: avoid;
+    }
+
+    .solo-pantalla,
+    #acciones,
+    .volver {
+      display: none !important;
+    }
+
+    /* La inversión. El chaflán y las facetas no sobreviven al papel: en tinta
+       una esquina cortada parece un error de impresión, no una decisión.
+
+       Va por barrido y no por lista de clases. La versión anterior enumeraba
+       `.text-hueso`, `h1`, `h2`… y `:global(.text-hueso)` no casa con
+       `.text-hueso\/70`: los dos bloques de condiciones y la nota de cierre
+       salían impresos en hueso sobre papel, a 1,05:1. Invisibles. */
+    :global(body) {
+      background: var(--color-papel) !important;
+      color: var(--color-tinta) !important;
+    }
+    :global(main),
+    :global(main *) {
+      color: var(--color-tinta) !important;
+    }
+    :global(.faceta) {
+      background: transparent !important;
+      clip-path: none !important;
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-tinta) 22%, transparent) !important;
+    }
+    :global(.rotulo),
+    :global(.id-pliegue) {
+      color: color-mix(in srgb, var(--color-tinta) 62%, transparent) !important;
+    }
+    :global(.marca-vineta) {
+      background: var(--color-tinta) !important;
+    }
+    /* La única fila que conserva tinta clara: va sobre fondo sólido. */
+    .doc-total td {
+      color: var(--color-papel) !important;
+    }
+
+    .doc-total td,
+    :global(.faceta) {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    [data-doc-fase],
+    :global(.faceta) {
+      break-inside: avoid;
+    }
+
+    @page {
+      margin: 16mm;
+    }
+  }
+</style>
+
+<script define:vars={{ tarifa: TARIFA_POR_DIA, serie: PROPUESTA.serie }}>
+  const elCantidad = document.getElementById('resumen-cantidad');
+  const elPrecio = document.getElementById('resumen-precio');
+  const botonImprimir = document.getElementById('imprimir');
+  const botonGuardar = document.getElementById('guardar');
+  const textoGuardar = document.getElementById('guardar-texto');
+  const elEmision = document.getElementById('emision');
+  const elDocNumero = document.getElementById('doc-numero');
+  const cuerposDoc = Array.from(document.querySelectorAll('[data-doc-fase]'));
+  const elDocTotalDias = document.getElementById('doc-total-dias');
+  const elDocTotalValor = document.getElementById('doc-total-valor');
+  const tiraFacetas = Array.from(document.querySelectorAll('#tira-superficie .tira-faceta'));
+  const elsFaseTotal = Array.from(document.querySelectorAll('[data-fase-total]'));
+
+  /** Detalle de lo elegido, en orden de página. Lo arma recalcular(). */
+  let resumen = [];
+  let totalDias = 0;
+
+  const items = Array.from(document.querySelectorAll('[data-item]'));
+  const toggles = items.filter((el) => el.dataset.tipo === 'toggle');
+  const contadores = items.filter((el) => el.dataset.tipo === 'contador');
+  const grupos = items.filter((el) => el.dataset.tipo === 'grupo');
+  const opciones = Array.from(document.querySelectorAll('[data-opcion]'));
+  const variantes = Array.from(document.querySelectorAll('[data-variante]'));
+
+  /** id → elemento, para resolver los `requiere` sin buscar en el DOM cada vez. */
+  const porId = new Map(items.map((el) => [el.dataset.id, el]));
+  /** id de opción → id del grupo al que pertenece. */
+  const grupoDeOpcion = new Map(opciones.map((el) => [el.dataset.id, el.dataset.grupo]));
+  /** id de grupo → id de la opción elegida. */
+  const seleccion = new Map(grupos.map((el) => [el.dataset.id, el.dataset.inicial]));
+
+  // Los centavos aparecen solo cuando existen: las horas sueltas dan importes
+  // como $12,50 y redondearlos a dólar entero descuadraba el documento.
+  function fmt(n) {
+    return n.toLocaleString('es-EC', {
+      minimumFractionDigits: n % 1 === 0 ? 0 : 2,
+      maximumFractionDigits: 2,
+    });
+  }
+  // Tres decimales: hay piezas de tres cuartos de jornada y otras de un cuarto.
+  // Con menos, la pantalla mostraría un número y el total sumaría otro.
+  function fmtDias(n) {
+    return n.toLocaleString('es-EC', { maximumFractionDigits: 3 });
+  }
+  function etiquetaDias(n) {
+    return n === 1 ? 'día' : 'días';
+  }
+
+  /**
+   * ¿Está activo lo que otra pieza necesita? Se resuelve en cadena: «manejo de
+   * fotografías» necesita el panel, el panel necesita la carta pública. El set
+   * `visto` sólo está para que un `requiere` mal escrito no cuelgue la página.
+   */
+  function activo(id, visto) {
+    if (!id || visto.has(id)) return true;
+    visto.add(id);
+
+    const grupoDelId = grupoDeOpcion.get(id);
+    if (grupoDelId) {
+      return seleccion.get(grupoDelId) === id && disponible(grupoDelId, visto);
+    }
+
+    const el = porId.get(id);
+    if (!el) return true;
+    if (el.dataset.tipo === 'toggle') return el.dataset.marcada === 'true' && disponible(id, visto);
+    if (el.dataset.tipo === 'contador') return Number(el.dataset.valor) > 0 && disponible(id, visto);
+    return disponible(id, visto);
+  }
+
+  function disponible(id, visto = new Set()) {
+    const el = porId.get(id);
+    const requiere = el?.dataset.requiere;
+    return requiere ? activo(requiere, visto) : true;
+  }
+
+  function pintarBloqueo(el, libre) {
+    el.classList.toggle('colapsada', !libre);
+    const aviso = el.querySelector('[data-bloqueo]');
+    if (aviso) aviso.hidden = libre;
+  }
+
+  function recalcular() {
+    let dias = 0;
+    let cantidad = 0;
+
+    // Toggles. Al perder su requisito se pliegan solos, y no se vuelven a
+    // desplegar cuando el requisito regresa: eso lo decide el cliente.
+    toggles.forEach((el) => {
+      const libre = disponible(el.dataset.id);
+      if (!libre) el.dataset.marcada = 'false';
+      const marcada = el.dataset.marcada === 'true';
+      el.classList.toggle('desplegada', marcada);
+      // `aria-disabled` y no `disabled`: la pieza colapsada tiene que seguir
+      // siendo alcanzable con el teclado, porque el motivo por el que está
+      // colapsada se lee dentro de ella. El clic se corta en el manejador.
+      el.setAttribute('aria-disabled', libre ? 'false' : 'true');
+      el.setAttribute('aria-pressed', marcada ? 'true' : 'false');
+      pintarBloqueo(el, libre);
+
+      const diasPieza = Number(el.dataset.dias || 0);
+      const linea = el.querySelector('[data-precio-linea]');
+      if (linea) {
+        linea.textContent = `${fmtDias(diasPieza)} ${etiquetaDias(diasPieza)} · $${fmt(diasPieza * tarifa)}`;
+      }
+
+      if (marcada) {
+        dias += diasPieza;
+        cantidad += 1;
+      }
+    });
+
+    // Contadores.
+    contadores.forEach((el) => {
+      const libre = disponible(el.dataset.id);
+      if (!libre) el.dataset.valor = '0';
+      const valor = Number(el.dataset.valor || 0);
+      const porUnidad = Number(el.dataset.diasUnidad || 0);
+      const min = Number(el.dataset.min || 0);
+      const max = Number(el.dataset.max || 0);
+      const diasPieza = valor * porUnidad;
+
+      el.classList.toggle('desplegada', valor > 0);
+      pintarBloqueo(el, libre);
+
+      const texto = el.querySelector('[data-valor-texto]');
+      if (texto) texto.textContent = String(valor);
+
+      el.querySelectorAll('[data-paso]').forEach((boton) => {
+        const paso = Number(boton.dataset.paso);
+        boton.disabled = !libre || (paso < 0 ? valor <= min : valor >= max);
+      });
+
+      const linea = el.querySelector('[data-precio-linea]');
+      if (linea) {
+        const unidad = valor === 1 ? el.dataset.singular : el.dataset.plural;
+        linea.textContent =
+          valor === 0
+            ? `${fmtDias(porUnidad)} ${etiquetaDias(porUnidad)} c/u`
+            : `${valor} ${unidad} · ${fmtDias(diasPieza)} ${etiquetaDias(diasPieza)} · $${fmt(diasPieza * tarifa)}`;
+      }
+
+      if (valor > 0) {
+        dias += diasPieza;
+        cantidad += 1;
+      }
+    });
+
+    // Grupos excluyentes.
+    const opcionesActivas = new Set();
+    grupos.forEach((el) => {
+      const idGrupo = el.dataset.id;
+      const libre = disponible(idGrupo);
+      pintarBloqueo(el, libre);
+      if (libre) opcionesActivas.add(seleccion.get(idGrupo));
+    });
+
+    opciones.forEach((el) => {
+      const elegida = seleccion.get(el.dataset.grupo) === el.dataset.id;
+      el.classList.toggle('opcion-elegida', elegida);
+      // `aria-checked` dentro de un `radiogroup`: son alternativas excluyentes,
+      // y «seleccionado, 1 de 3» es la verdad. `aria-pressed` decía «pulsado».
+      el.setAttribute('aria-checked', elegida ? 'true' : 'false');
+
+      const diasOpcion = Number(el.dataset.dias || 0);
+      const linea = el.querySelector('[data-precio-linea]');
+      if (linea) {
+        linea.textContent = `${fmtDias(diasOpcion)} ${etiquetaDias(diasOpcion)} · $${fmt(diasOpcion * tarifa)}`;
+      }
+
+      if (elegida && opcionesActivas.has(el.dataset.id)) {
+        dias += diasOpcion;
+        cantidad += 1;
+      }
+    });
+
+    // Texto que cambia según la opción elegida.
+    variantes.forEach((el) => {
+      el.hidden = !opcionesActivas.has(el.dataset.variante);
+    });
+
+    // Detalle en orden de página, leyendo el estado ya asentado: las piezas
+    // colapsadas quedaron plegadas más arriba, así que no hay que filtrarlas.
+    resumen = [];
+    totalDias = dias;
+    items.forEach((el) => {
+      if (el.dataset.tipo === 'toggle' && el.dataset.marcada === 'true') {
+        resumen.push({
+          id: el.dataset.id,
+          nombre: el.dataset.nombre,
+          cantidad: 1,
+          dias: Number(el.dataset.dias || 0),
+        });
+        return;
+      }
+      if (el.dataset.tipo === 'contador') {
+        const valor = Number(el.dataset.valor || 0);
+        if (valor === 0) return;
+        resumen.push({
+          id: el.dataset.id,
+          nombre: el.dataset.nombre,
+          cantidad: valor,
+          dias: valor * Number(el.dataset.diasUnidad || 0),
+        });
+        return;
+      }
+      if (el.dataset.tipo === 'grupo') {
+        const idOpcion = seleccion.get(el.dataset.id);
+        if (!opcionesActivas.has(idOpcion)) return;
+        const opcion = opciones.find((o) => o.dataset.id === idOpcion);
+        if (!opcion) return;
+        resumen.push({
+          id: opcion.dataset.id,
+          nombre: opcion.dataset.nombre,
+          cantidad: 1,
+          dias: Number(opcion.dataset.dias || 0),
+        });
+      }
+    });
+
+    // Subtotal por fase, en la cabecera de cada fase. Sustituye al contador
+    // «01/04», que numeraba una secuencia que el lector no necesita y que
+    // además mentía: «SEO y posicionamiento» no es la fase 3 de nada.
+    const totalesFase = new Map();
+    items.forEach((el) => {
+      const fase = el.dataset.fase;
+      if (fase === undefined) return;
+      let diasItem = 0;
+      if (el.dataset.tipo === 'toggle') {
+        if (el.dataset.marcada === 'true') diasItem = Number(el.dataset.dias || 0);
+      } else if (el.dataset.tipo === 'contador') {
+        diasItem = Number(el.dataset.valor || 0) * Number(el.dataset.diasUnidad || 0);
+      } else if (el.dataset.tipo === 'grupo') {
+        const idOpcion = seleccion.get(el.dataset.id);
+        if (opcionesActivas.has(idOpcion)) {
+          const opcion = opciones.find((o) => o.dataset.id === idOpcion);
+          diasItem = opcion ? Number(opcion.dataset.dias || 0) : 0;
+        }
+      }
+      totalesFase.set(fase, (totalesFase.get(fase) || 0) + diasItem);
+    });
+    elsFaseTotal.forEach((el) => {
+      const diasFase = totalesFase.get(el.dataset.fase) || 0;
+      el.textContent = diasFase > 0 ? `$${fmt(diasFase * tarifa)}` : 'Sin desplegar';
+    });
+
+    pintarDocumento();
+
+    // La superficie desplegada: una faceta encendida por pieza incluida.
+    tiraFacetas.forEach((faceta, i) => {
+      faceta.classList.toggle('encendida', i < cantidad);
+    });
+
+    if (elCantidad) {
+      const etiquetaPieza = cantidad === 1 ? 'desplegada' : 'desplegadas';
+      elCantidad.textContent = `${cantidad} ${etiquetaPieza} · ${fmtDias(dias)} ${etiquetaDias(dias)}`;
+    }
+    if (elPrecio) {
+      elPrecio.textContent = `$${fmt(dias * tarifa)}`;
+    }
+
+    sincronizarUrl();
+  }
+
+  /**
+   * La selección entera va en la URL con replaceState: sobrevive al refresco y
+   * el enlace copiado es el presupuesto acordado, sin ensuciar el historial.
+   */
+  function sincronizarUrl() {
+    const params = new URLSearchParams();
+
+    const marcados = toggles
+      .filter((el) => el.dataset.marcada === 'true')
+      .map((el) => el.dataset.id);
+    params.set('p', marcados.join(','));
+
+    const cuentas = contadores
+      .filter((el) => Number(el.dataset.valor) > 0)
+      .map((el) => `${el.dataset.id}:${el.dataset.valor}`);
+    if (cuentas.length) params.set('n', cuentas.join(','));
+
+    const elegidas = grupos.map((el) => `${el.dataset.id}:${seleccion.get(el.dataset.id)}`);
+    if (elegidas.length) params.set('g', elegidas.join(','));
+
+    history.replaceState(null, '', `${location.pathname}?${params}`);
+  }
+
+  function restaurarDesdeUrl() {
+    const params = new URLSearchParams(location.search);
+
+    const marcados = params.get('p');
+    if (marcados !== null) {
+      const elegidos = new Set(marcados.split(',').filter(Boolean));
+      toggles.forEach((el) => {
+        el.dataset.marcada = elegidos.has(el.dataset.id) ? 'true' : 'false';
+      });
+    }
+
+    const cuentas = params.get('n');
+    if (cuentas !== null) {
+      const valores = new Map(
+        cuentas
+          .split(',')
+          .filter(Boolean)
+          .map((par) => par.split(':')),
+      );
+      contadores.forEach((el) => {
+        const crudo = Number(valores.get(el.dataset.id) ?? 0);
+        const min = Number(el.dataset.min || 0);
+        const max = Number(el.dataset.max || 0);
+        el.dataset.valor = String(
+          Math.min(max, Math.max(min, Number.isFinite(crudo) ? crudo : min)),
+        );
+      });
+    }
+
+    const elegidas = params.get('g');
+    if (elegidas !== null) {
+      elegidas
+        .split(',')
+        .filter(Boolean)
+        .forEach((par) => {
+          const [idGrupo, idOpcion] = par.split(':');
+          if (seleccion.has(idGrupo) && grupoDeOpcion.get(idOpcion) === idGrupo) {
+            seleccion.set(idGrupo, idOpcion);
+          }
+        });
+    }
+  }
+
+  toggles.forEach((el) => {
+    el.addEventListener('click', () => {
+      if (el.getAttribute('aria-disabled') === 'true') return;
+      el.dataset.marcada = el.dataset.marcada === 'true' ? 'false' : 'true';
+      recalcular();
+    });
+  });
+
+  contadores.forEach((el) => {
+    el.querySelectorAll('[data-paso]').forEach((boton) => {
+      boton.addEventListener('click', () => {
+        const paso = Number(boton.dataset.paso);
+        const min = Number(el.dataset.min || 0);
+        const max = Number(el.dataset.max || 0);
+        const valor = Number(el.dataset.valor || 0);
+        el.dataset.valor = String(Math.min(max, Math.max(min, valor + paso)));
+        recalcular();
+      });
+    });
+  });
+
+  opciones.forEach((el) => {
+    el.addEventListener('click', () => {
+      seleccion.set(el.dataset.grupo, el.dataset.id);
+      recalcular();
+    });
+  });
+
+  const hoy = new Date();
+  const fechaLarga = hoy.toLocaleDateString('es-EC', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+  if (elEmision) elEmision.textContent = fechaLarga;
+  if (elDocNumero) {
+    const sello = [hoy.getFullYear(), hoy.getMonth() + 1, hoy.getDate()]
+      .map((n, i) => String(n).padStart(i === 0 ? 4 : 2, '0'))
+      .join('');
+    elDocNumero.textContent = `N.º ${serie}-${sello}`;
+  }
+
+  botonImprimir?.addEventListener('click', () => window.print());
+
+  /**
+   * El documento ya tiene todas las filas en el marcado: acá solo se tapan las
+   * que no se contrataron y se completan días y valores. Una fase sin nada
+   * desplegado desaparece entera, subtotal incluido.
+   */
+  function pintarDocumento() {
+    const elegido = new Map(resumen.map((r) => [r.id, r]));
+
+    cuerposDoc.forEach((cuerpo) => {
+      let diasFase = 0;
+      let visibles = 0;
+
+      cuerpo.querySelectorAll('[data-doc-fila]').forEach((fila) => {
+        const dato = elegido.get(fila.dataset.id);
+        fila.hidden = !dato;
+        if (!dato) return;
+
+        visibles += 1;
+        diasFase += dato.dias;
+
+        const cantidad = fila.querySelector('[data-doc-cantidad]');
+        if (cantidad) cantidad.textContent = dato.cantidad > 1 ? ` ×${dato.cantidad}` : '';
+        fila.querySelector('[data-doc-dias]').textContent = fmtDias(dato.dias);
+        fila.querySelector('[data-doc-valor]').textContent = `$${fmt(dato.dias * tarifa)}`;
+      });
+
+      cuerpo.hidden = visibles === 0;
+
+      const subtotal = cuerpo.querySelector('[data-doc-subtotal]');
+      if (subtotal) {
+        subtotal.querySelector('[data-doc-dias]').textContent = fmtDias(diasFase);
+        subtotal.querySelector('[data-doc-valor]').textContent = `$${fmt(diasFase * tarifa)}`;
+      }
+    });
+
+    if (elDocTotalDias) {
+      elDocTotalDias.textContent = `${fmtDias(totalDias)} ${etiquetaDias(totalDias)}`;
+    }
+    if (elDocTotalValor) elDocTotalValor.textContent = `$${fmt(totalDias * tarifa)}`;
+  }
+
+  function avisar(texto) {
+    if (!textoGuardar) return;
+    textoGuardar.textContent = texto;
+    setTimeout(() => {
+      textoGuardar.textContent = 'Copiar el enlace';
+    }, 2600);
+  }
+
+  /**
+   * La selección no se guarda en ningún lado porque no hace falta: viaja entera
+   * en la URL. Guardarla es quedarse con el enlace.
+   */
+  botonGuardar?.addEventListener('click', async () => {
+    if (!resumen.length) {
+      avisar('No hay piezas desplegadas');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(location.href);
+      avisar('Enlace copiado');
+    } catch {
+      avisar('Copie el enlace de la barra');
+    }
+  });
+
+  restaurarDesdeUrl();
+  recalcular();
+</script>

@@ -1,0 +1,249 @@
+{
+  "meta": {
+    "title": "Cotización · Ancestral Cocina de Autor",
+    "description": "Presupuesto por piezas: se marca lo que entra y el total se recalcula solo."
+  },
+  "settings": {
+    "validityDays": 15,
+    "quotePrefix": "AN",
+    "preparedBy": "Freddy Tacuri",
+    "client": "Ancestral · Cocina de Autor",
+    "subject": "Landing + Carta digital",
+    "pricing": {
+      "source": "Precio cerrado por pieza. Los valores se trasladaron uno a uno desde la versión anterior por jornadas, para que el total no cambiara al quitar el tiempo del cálculo.",
+      "updated": "2026-09-02"
+    }
+  },
+  "phases": [
+    {
+      "id": "fase1",
+      "name": "Fase 1 · Landing",
+      "note": "El cliente entrega los textos y las fotografías de los platos. Se realizan dos rondas de revisión por sección.",
+      "items": [
+        {
+          "kind": "toggle",
+          "id": "landing-base",
+          "tag": "F1",
+          "name": "Landing de presentación",
+          "initial": true,
+          "description": "Incluye 5 secciones: portada, la cocina y el chef, platos destacados, ubicación y horarios, y cierre con reserva por WhatsApp — más cabecera y pie. El texto final se define con el cliente, ajustes finales y publicación en la web.",
+          "price": 80
+        },
+        {
+          "kind": "counter",
+          "id": "paginas-extra",
+          "tag": "F1.1",
+          "name": "Subpágina",
+          "initial": 0,
+          "min": 0,
+          "max": 4,
+          "requires": "landing-base",
+          "unit": { "singular": "página", "plural": "páginas" },
+          "description": "Una página adicional accesible desde el menú — por ejemplo Catering y Eventos, o Bar y coctelería. Incluye hasta 3 secciones. Si hacen falta más secciones, se agregan en la pieza siguiente.",
+          "pricePerUnit": 60
+        },
+        {
+          "kind": "counter",
+          "id": "secciones-extra",
+          "tag": "F1.2",
+          "name": "Sección informativa adicional",
+          "initial": 0,
+          "min": 0,
+          "max": 6,
+          "requires": "landing-base",
+          "unit": { "singular": "sección", "plural": "secciones" },
+          "description": "Una sección con texto, imágenes y diseño propio.",
+          "pricePerUnit": 30
+        }
+      ]
+    },
+    {
+      "id": "fase2",
+      "name": "Fase 2 · Carta digital",
+      "items": [
+        {
+          "kind": "toggle",
+          "id": "carta-base",
+          "tag": "F2",
+          "name": "Carta pública",
+          "initial": true,
+          "description": "Carta por categorías (entradas, fuertes, postres, bebidas, coctelería, y los menús de catering y eventos de Grupo Ancestral), ficha de cada plato o menú con foto, descripción y precio, buscador, marcado de disponibilidad y reserva por WhatsApp — con datos reales en base de datos, no de muestra. Los menús de evento son una categoría más de la misma carta: llevan lo que incluye cada uno y su número de invitados de referencia, y su formulario arma solo el mensaje de WhatsApp con la fecha y el número de personas.",
+          "variants": {
+            "carga-panel": "Los platos y precios los cargan y actualizan ustedes desde el panel.",
+            "carga-planilla": "Los platos y precios salen de una planilla que ustedes editan.",
+            "carga-inicial": "Los platos los dejo cargados yo una vez; después la carta queda fija."
+          },
+          "price": 250
+        },
+        {
+          "kind": "choice",
+          "id": "carga",
+          "question": "¿Cómo entran y se actualizan los platos y los precios?",
+          "initial": "carga-panel",
+          "requires": "carta-base",
+          "options": [
+            {
+              "id": "carga-panel",
+              "tag": "F2.1",
+              "name": "Panel de administración",
+              "recommended": true,
+              "description": "Cuentas para 2 administradores, formulario de ingreso de platos (foto, nombre, categoría, descripción, precio, disponibilidad) y vista de la carta completa. Autonomía total: subir un plato nuevo o cambiar un precio sin depender del desarrollador.",
+              "price": 200
+            },
+            {
+              "id": "carga-planilla",
+              "tag": "F2.2",
+              "name": "Planilla de Google Sheets",
+              "description": "Documento compartido en Google Sheets donde los administradores editan platos y precios. La planilla se sincroniza con la carta automáticamente, sin intervención del desarrollador. No incluye subida de fotos: las imágenes se cargan a la nube aparte y se pegan los enlaces en la planilla.",
+              "price": 90
+            },
+            {
+              "id": "carga-inicial",
+              "tag": "F2.3",
+              "name": "Carta fija",
+              "description": "Carga realizada por el desarrollador (hasta 60 platos) una sola vez, con lo que el cliente proporcione. Después la carta queda fija: no hay panel ni planilla para actualizarla.",
+              "price": 40
+            }
+          ]
+        },
+        {
+          "kind": "toggle",
+          "id": "galeria",
+          "tag": "F2.4",
+          "name": "Galería de platos",
+          "initial": false,
+          "requires": "landing-base",
+          "description": "Galería de fotografías con vista ampliada, pensada para que los platos se vean grandes en el teléfono. Las imágenes se optimizan para que la página no se vuelva lenta.",
+          "price": 60
+        },
+        {
+          "kind": "toggle",
+          "id": "carta-pdf",
+          "tag": "F2.5",
+          "name": "Carta en PDF",
+          "initial": false,
+          "requires": "carta-base",
+          "description": "Documento PDF descargable con la carta completa o con una categoría determinada, sincronizado automáticamente con la carta. Sirve para enviarlo por WhatsApp o para imprimirlo cuando cambia un precio.",
+          "price": 50
+        },
+        {
+          "kind": "toggle",
+          "id": "qr-mesa",
+          "tag": "F2.6",
+          "name": "Carta por código QR en mesa",
+          "initial": false,
+          "requires": "carta-base",
+          "description": "Código QR listo para imprimir que abre la carta en el teléfono del comensal, con enlaces individuales por categoría. La impresión de los códigos corre por cuenta del cliente.",
+          "price": 30
+        },
+        {
+          "kind": "toggle",
+          "id": "extras",
+          "tag": "F2.7",
+          "name": "Etiquetas y platos más pedidos",
+          "initial": false,
+          "requires": "carta-base",
+          "description": "Etiquetas «Nuevo», «Recomendado del chef» y «Picante» para destacar platos dentro de la carta, y un registro de cuántas veces se consultó cada plato.",
+          "price": 30
+        }
+      ]
+    },
+    {
+      "id": "seo",
+      "name": "SEO y posicionamiento",
+      "note": "Enfocado en que el restaurante aparezca primero al buscar su nombre y en el mapa, no en competir por palabras genéricas.",
+      "items": [
+        {
+          "kind": "toggle",
+          "id": "seo-basico",
+          "tag": "S1",
+          "name": "SEO básico",
+          "initial": false,
+          "description": "Título y descripción en cada página, sitemap.xml y robots.txt generados automáticamente, y datos estructurados (Schema.org de Restaurante y de Menú) que identifican al negocio ante Google.",
+          "price": 30
+        },
+        {
+          "kind": "toggle",
+          "id": "seo-perfil-google",
+          "tag": "S2",
+          "name": "Perfil de Google y Search Console",
+          "initial": false,
+          "requires": "seo-basico",
+          "description": "Verificación del sitio en Google Search Console y envío del sitemap. Configuración inicial del Perfil de Negocio en Google (nombre, dirección, horario, categoría, fotos) para aparecer en el mapa y en la ficha lateral al buscar el nombre del restaurante.",
+          "price": 20
+        }
+      ]
+    },
+    {
+      "id": "postventa",
+      "name": "Post-venta",
+      "items": [
+        {
+          "kind": "counter",
+          "id": "bolsa-soporte",
+          "tag": "P1",
+          "name": "Servicio de soporte por hora",
+          "initial": 0,
+          "min": 0,
+          "max": 40,
+          "unit": { "singular": "hora", "plural": "horas" },
+          "description": "Cambios de texto, precios y ajustes menores posteriores a la publicación. Se acuerda una reunión para programar el trabajo y se descuenta según las horas efectivamente utilizadas.",
+          "pricePerUnit": 15
+        }
+      ]
+    }
+  ],
+  "recurringCosts": [
+    "Dominio: aproximadamente $25 al año, contratado a nombre del cliente.",
+    "Hosting y base de datos: la carta con panel de administración requiere un servidor activo. Se contrata a nombre del cliente y se factura mensualmente. El valor depende del mercado."
+  ],
+  "notIncluded": [
+    "Redacción de textos y sesión fotográfica de los platos.",
+    "Carga de contenido, salvo que se contrate la carga inicial realizada por el desarrollador.",
+    "Pasarela de pagos, pedidos en línea y reservas con confirmación automática.",
+    "Impresión de cartas físicas, códigos QR o cualquier pieza gráfica fuera de la web.",
+    "Posicionamiento por palabras clave genéricas y campañas de publicidad paga."
+  ],
+  "ui": {
+    "back": "Volver",
+    "intro": "Cada pieza es independiente: suma lo que quieras y elimina lo que no. El total de abajo se recalcula según lo marcado.",
+    "readonlyNotice": "Vista de solo lectura: la selección viene fijada en el enlace.",
+    "requires": "Necesita",
+    "chooseOne": "Se elige una",
+    "recommended": "Recomendada",
+    "each": "c/u",
+    "partSingular": "pieza desplegada",
+    "partPlural": "piezas desplegadas",
+    "addUnit": "Agregar",
+    "removeUnit": "Quitar",
+    "totalLabel": "Total estimado",
+    "print": "Imprimir propuesta",
+    "save": "Copiar el enlace",
+    "saveDone": "Enlace copiado",
+    "saveFallback": "Copie el enlace de la barra",
+    "saveEmpty": "No hay piezas desplegadas",
+    "recurringTitle": "Costos externos, por cuenta del cliente",
+    "notIncludedTitle": "Lo que este presupuesto no incluye",
+    "scheduleNote": "La producción se ejecuta en horario de jornada laboral y días hábiles. El cronograma final depende de los tiempos de revisión y aprobación del cliente.",
+    "validityTitle": "Validez de la cotización",
+    "validitySuffix": "días desde la fecha de emisión",
+    "phaseEmpty": "Sin desplegar"
+  },
+  "document": {
+    "title": "Cotización",
+    "numberLabel": "N.º",
+    "preparedFor": "Preparado para",
+    "preparedBy": "Preparado por",
+    "issuedOn": "Fecha de emisión",
+    "validity": "Validez",
+    "subjectLabel": "Asunto",
+    "colRef": "Ref.",
+    "colConcept": "Concepto",
+    "colAmount": "Valor",
+    "subtotal": "Subtotal",
+    "total": "Total estimado",
+    "signClient": "Por el cliente",
+    "signDeveloper": "Por el desarrollador",
+    "signNote": "La firma de este documento constituye la aprobación de las piezas detalladas y da inicio al cronograma."
+  }
+}

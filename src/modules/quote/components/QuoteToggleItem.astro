@@ -1,0 +1,65 @@
+---
+/*
+  Pieza que se despliega o se deja plegada. <button aria-pressed> real, no un
+  div con listener. El precio de línea y el estado los rellena el controlador
+  vía [data-line-price] y las clases `desplegada` / `colapsada`.
+*/
+import type { ToggleItem } from '../core/types';
+
+interface Props {
+  item: ToggleItem;
+  order: number;
+  requiresLabel: string;
+  requiresName: string;
+}
+
+const { item, order, requiresLabel, requiresName } = Astro.props;
+---
+
+<button
+  type="button"
+  class="faceta pieza w-full px-5 py-4 text-left"
+  style={`--orden:${order}`}
+  data-piece="toggle"
+  data-id={item.id}
+  aria-pressed="false"
+>
+  <span class="flex items-start gap-3.5">
+    <span class="marca-pliegue mt-0.5" aria-hidden="true">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3.5 8.4l3.1 3.1 6-6.6" />
+      </svg>
+    </span>
+
+    <span class="min-w-0 flex-1">
+      <span class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <span class="font-display text-rubro font-600 uppercase text-hueso">
+          {item.tag && <span class="id-pliegue mr-2">{item.tag}</span>}
+          {item.name}
+        </span>
+        <span class="cifra shrink-0 text-menudo text-hueso-suave" data-line-price></span>
+      </span>
+
+      <span class="mt-1.5 block max-w-[58ch] font-texto text-cuerpo text-hueso/70">
+        {item.description}
+        {
+          item.variants &&
+            Object.entries(item.variants).map(([optionId, text]) => (
+              <span class="text-oro-claro" data-variant={optionId} hidden>
+                {' '}
+                {text}
+              </span>
+            ))
+        }
+      </span>
+
+      {
+        item.requires && (
+          <span class="rotulo mt-2 inline-block text-ambar" data-lock hidden>
+            {requiresLabel} · {requiresName}
+          </span>
+        )
+      }
+    </span>
+  </span>
+</button>

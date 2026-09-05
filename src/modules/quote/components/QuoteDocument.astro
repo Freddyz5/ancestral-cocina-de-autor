@@ -1,0 +1,135 @@
+---
+/*
+  La propuesta impresa. Sólo existe en papel: en pantalla el cotizador sigue
+  siendo la herramienta por piezas, pero lo que sale de la impresora es un
+  documento con número, tabla de conceptos, subtotales por fase y firmas.
+
+  No calcula nada: el marcado trae TODAS las filas y el controlador tapa las
+  que no se contrataron y rellena las cifras (paintDocument), igual que hace
+  con las piezas de pantalla. Por eso los ganchos data-doc-* de aquí tienen que
+  coincidir con los que core/controller.ts consulta, y el orden de los
+  <tbody data-doc-phase> con el de data.phases: se emparejan por posición.
+*/
+import type { QuoteData } from '../core/types';
+
+interface Props {
+  data: QuoteData;
+}
+
+const { data } = Astro.props;
+const { document: doc, settings, ui } = data;
+
+/*
+  Las filas de un grupo excluyente son sus opciones, no el grupo: la línea que
+  el cálculo emite lleva el id de la opción elegida. Aplanar aquí evita repetir
+  el condicional por cada celda de la tabla.
+*/
+interface DocRow {
+  id: string;
+  tag?: string;
+  name: string;
+}
+
+const rowsOf = (phase: QuoteData['phases'][number]): DocRow[] =>
+  phase.items.flatMap((item) =>
+    item.kind === 'choice'
+      ? item.options.map((option) => ({ id: option.id, tag: option.tag, name: option.name }))
+      : [{ id: item.id, tag: item.tag, name: item.name }],
+  );
+---
+
+<section class="solo-impresion mt-6" aria-hidden="true">
+  <div class="flex items-end justify-between gap-6 border-b-2 border-tinta/30 pb-3">
+    <p class="rotulo">{doc.title}</p>
+    <p class="cifra text-menudo font-600">
+      <span>{doc.numberLabel}</span> <span data-doc-number></span>
+    </p>
+  </div>
+
+  <p class="mt-4 font-texto text-menudo">
+    <span class="rotulo">{doc.subjectLabel}</span>
+    <span class="ml-2">{settings.subject}</span>
+  </p>
+
+  <table class="doc-tabla mt-6">
+    <thead>
+      <tr>
+        <th class="rotulo doc-cabecera doc-ref text-left" scope="col">{doc.colRef}</th>
+        <th class="rotulo doc-cabecera text-left" scope="col">{doc.colConcept}</th>
+        <th class="rotulo doc-cabecera doc-numero" scope="col">{doc.colAmount}</th>
+      </tr>
+    </thead>
+
+    {
+      data.phases.map((phase) => (
+        <tbody data-doc-phase>
+          <tr>
+            <th colspan="3" class="doc-fase font-display text-rubro font-600" scope="colgroup">
+              {phase.name}
+            </th>
+          </tr>
+
+          {rowsOf(phase).map((row) => (
+            <tr data-doc-row data-id={row.id}>
+              <td class="doc-concepto doc-ref cifra">{row.tag}</td>
+              <td class="doc-concepto">
+                {row.name}
+                <span class="cifra" data-doc-quantity />
+              </td>
+              <td class="doc-concepto doc-numero cifra" data-doc-amount />
+            </tr>
+          ))}
+
+          <tr data-doc-subtotal>
+            <td colspan="2" class="doc-concepto doc-subtotal">
+              {doc.subtotal}
+            </td>
+            <td class="doc-concepto doc-numero doc-subtotal cifra" data-doc-amount />
+          </tr>
+        </tbody>
+      ))
+    }
+
+    <tfoot>
+      <tr class="doc-total">
+        <td colspan="2">{doc.total}</td>
+        <td class="doc-numero cifra" data-doc-total-amount></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <section class="mt-8 grid gap-6 sm:grid-cols-2">
+    <div>
+      <p class="rotulo">{ui.recurringTitle}</p>
+      <ul class="mt-2 space-y-1.5">
+        {
+          data.recurringCosts.map((point) => (
+            <li class="font-texto text-menudo leading-relaxed">{point}</li>
+          ))
+        }
+      </ul>
+    </div>
+    <div>
+      <p class="rotulo">{ui.notIncludedTitle}</p>
+      <ul class="mt-2 space-y-1.5">
+        {data.notIncluded.map((point) => <li class="font-texto text-menudo leading-relaxed">{point}</li>)}
+      </ul>
+    </div>
+  </section>
+
+  <p class="mt-6 font-texto text-menudo leading-relaxed">{ui.scheduleNote}</p>
+
+  <section class="doc-firmas mt-10">
+    <p class="col-span-2 font-texto text-menudo leading-relaxed">{doc.signNote}</p>
+    <div>
+      <div class="doc-firma"></div>
+      <p class="rotulo mt-2">{doc.signClient}</p>
+      <p class="mt-0.5 font-texto text-menudo">{settings.client}</p>
+    </div>
+    <div>
+      <div class="doc-firma"></div>
+      <p class="rotulo mt-2">{doc.signDeveloper}</p>
+      <p class="mt-0.5 font-texto text-menudo">{settings.preparedBy}</p>
+    </div>
+  </section>
+</section>

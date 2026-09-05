@@ -26,28 +26,43 @@ bun run preview  # revisa dist/ antes de publicar
 
 ```
 src/
+  constants/quote.json    TODO el cotizador: fases, piezas, precios y textos.
+  modules/quote/
+    core/types.ts         La forma de quote.json.
+    core/quote.ts         El cálculo. Funciones puras, sin DOM y sin idioma.
+    core/url.ts           La selección entera, ida y vuelta a la URL.
+    core/controller.ts    El puente al DOM: estado → pintar.
+    core/format.ts        Dinero, fechas y el número de cotización.
+    components/           Una pieza por tipo (toggle, contador, grupo…).
+    styles/quote.css      Los estilos propios del cotizador.
+    QuotePage.astro       La composición. Ni una cifra ni un texto.
   modules/Ancestral/
-    constants/config.ts     WhatsApp, redes, textos fijos. Empieza acá.
-    data/presupuesto.ts     Las piezas del cotizador y la tarifa por día.
+    constants/config.ts   WhatsApp, redes, textos de marca del sitio.
     components/Lamina.astro El fondo: el campo de pliegues Miura, en SVG.
     components/Logo.astro   El logotipo, recortado de marca/.
-    layouts/Base.astro      <head>, y el contrato de dirección del diseño.
+    layouts/Base.astro    <head>, y el contrato de dirección del diseño.
   pages/
-    index.astro             Portada provisional (la landing es la Fase 1).
-    presupuesto.astro       El cotizador.
-  styles/global.css         La paleta, las tres tipografías y los componentes.
-marca/                      Los archivos de marca originales (capturas).
-public/marca/               El logotipo recortado, listo para la web.
-DESIGN.md                   El sistema de diseño. PRODUCT.md, la verdad de producto.
+    index.astro           Portada provisional (la landing es la Fase 1).
+    presupuesto.astro     El cotizador. Diez líneas: layout + datos.
+  styles/global.css       La paleta, las tres tipografías y los componentes.
+marca/                    Los archivos de marca originales (capturas).
+public/marca/             El logotipo recortado, listo para la web.
+DESIGN.md                 El sistema de diseño. PRODUCT.md, la verdad de producto.
 ```
 
 **Para cambiar el WhatsApp o las redes:** `src/modules/Ancestral/constants/config.ts`.
-Los botones arman solos el mensaje; no hay que tocarlos.
 
-**Para cambiar la tarifa o las piezas del presupuesto:**
-`src/modules/Ancestral/data/presupuesto.ts`. Hay tres tipos de pieza — `toggle`,
-`contador` y `opcion` (grupo excluyente) — y el campo `requiere` encadena unas con
-otras de verdad: si el requisito se pliega, la pieza se colapsa y deja de sumar.
+**Para cambiar precios, piezas o textos del presupuesto:** `src/constants/quote.json`,
+y nada más. Es la única fuente: la página, el total y el documento impreso salen
+todos de ahí.
+
+**No hay tarifa por hora ni jornadas.** Cada pieza trae su precio cerrado
+(`price`, o `pricePerUnit` en las de cantidad) y el total es una suma, no una
+multiplicación: una pieza vale por lo que entrega, no por lo que tarda.
+
+Hay tres tipos de pieza — `toggle`, `counter` y `choice` (grupo excluyente) — y
+el campo `requires` encadena unas con otras de verdad: si el requisito se pliega,
+la pieza se colapsa y deja de sumar.
 
 ## El cotizador
 
@@ -56,6 +71,8 @@ reunión, no una página del sitio público.
 
 - **La selección entera vive en la URL.** Al terminar la reunión se copia el enlace
   y ése es el presupuesto acordado — sin captura ni PDF de por medio.
+- **`?readonly=1`** congela la interacción y deja el presupuesto como quedó en el
+  enlace. Es la puerta para pasárselo al cliente sin que se le mueva nada.
 - **«Imprimir propuesta»** cambia la página entera por el documento formal:
   carátula, tabla de detalle por fase con subtotales, y firmas. Se imprime en tinta
   negra sobre papel, no en oro sobre negro.

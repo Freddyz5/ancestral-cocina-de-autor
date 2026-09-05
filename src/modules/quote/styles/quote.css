@@ -1,0 +1,455 @@
+/*
+  Los estilos del cotizador. Salen del <style> de la página para que la página
+  quede como en aether-tech: composición y nada más.
+
+  Los tokens (colores, tipografías, sesgo, chaflán) viven en styles/global.css
+  y son el sistema de Ancestral entero; aquí sólo están las piezas propias del
+  cotizador. Al ser un .css normal y no un <style> de Astro no hay `:global`:
+  todo es global por definición.
+
+  Pantalla y papel son dos vistas del mismo cálculo. En pantalla manda la
+  herramienta por piezas; al imprimir sale el documento y el cotizador entero
+  se oculta. El corte lo hace el bloque @media print del final.
+*/
+
+/* ==========================================================================
+   LA FACETA QUE SE DESPLIEGA
+   Una pieza no elegida no se difumina hasta ser ilegible: sigue plegada en la
+   lámina, con su cara en sombra y su pliegue de valle marcado. Se lee. Lo que
+   cambia entre plegada y desplegada es la luz que recibe la cara y si su
+   arista de monte está encendida — que es lo que cambia en una lámina real.
+   ========================================================================== */
+.pieza {
+  background: var(--color-faceta-plegada);
+}
+
+/* Sólo la pieza que de verdad se pulsa muestra puntero. El contador es un
+   contenedor con dos botones dentro; el puntero encima prometía un clic que
+   no existe. */
+button.pieza {
+  cursor: pointer;
+}
+
+.pieza:hover:not(.colapsada) {
+  background: var(--color-faceta-alta);
+}
+
+.pieza.desplegada {
+  background: var(--color-faceta);
+}
+
+/* El pliegue monte: la arista de oro del canto izquierdo, la que atrapa la
+   luz. Crece desde cero cuando la pieza se despliega. Va a 2px porque a 1px
+   sobre este fondo el oro se apaga. */
+.pieza::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    var(--color-oro-claro),
+    var(--color-oro) 45%,
+    var(--color-oro-hondo)
+  );
+  transform-origin: left center;
+  transform: scaleY(0);
+  transition: transform 0.3s var(--ease-pliegue);
+}
+.pieza.desplegada::before {
+  transform: scaleY(1);
+}
+
+/* El pliegue valle: el canto que quedó en sombra. Punteado, ceniza, y siempre
+   presente mientras la pieza esté plegada. `border-left` de verdad y no un
+   degradé repetido — es un filete, no un campo de líneas. */
+.pieza::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-left: 2px dashed var(--color-valle);
+  transition: opacity 0.3s var(--ease-pliegue);
+}
+.pieza.desplegada::after {
+  opacity: 0;
+}
+
+/*
+  El foco, dentro del chaflán. `outline-offset` pinta el anillo fuera de la
+  caja y el `clip-path` de `.faceta` lo recorta entero: el foco de teclado
+  sería invisible en todas las piezas. Un aro interior sí queda dentro.
+*/
+.faceta:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--color-oro-claro);
+}
+
+/*
+  LA PIEZA COLAPSADA
+  Su requisito se plegó, así que esta faceta cae plana: pierde el aire interior
+  y la luz. Se apaga la SUPERFICIE, no la tinta — con una opacidad global sobre
+  toda la pieza la descripción caía a 2,35:1. Sigue en la lámina y sigue siendo
+  alcanzable con el teclado, porque el cliente tiene que ver qué se llevó
+  consigo la pieza que acaba de soltar.
+*/
+.colapsada {
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+  background: var(--color-lamina-honda);
+  cursor: not-allowed;
+  transition:
+    padding 0.3s var(--ease-pliegue),
+    background-color 0.3s var(--ease-pliegue);
+}
+.colapsada .marca-pliegue,
+.colapsada [data-line-price] {
+  opacity: 0.4;
+}
+.colapsada .paso-boton {
+  opacity: 0.3;
+}
+
+/*
+  LA MARCA DE PLIEGUE
+  El indicador de estado: un paralelogramo con el mismo sesgo que los botones.
+  Vacío cuando la pieza está plegada, lleno de oro cuando se despliega. No es
+  un checkbox redondeado — no hay una sola esquina redondeada en esta lámina.
+*/
+.marca-pliegue {
+  display: grid;
+  place-items: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+  transform: skewX(var(--sesgo));
+  box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--color-hueso) 32%, transparent);
+  transition:
+    background-color 0.22s var(--ease-pliegue),
+    box-shadow 0.22s var(--ease-pliegue);
+}
+.marca-pliegue svg {
+  width: 0.8rem;
+  height: 0.8rem;
+  color: var(--color-lamina);
+  opacity: 0;
+  transform: skewX(calc(var(--sesgo) * -1));
+  transition: opacity 0.22s var(--ease-pliegue);
+}
+.desplegada .marca-pliegue {
+  background: var(--color-oro);
+  box-shadow: inset 0 0 0 1.5px var(--color-oro-claro);
+}
+.desplegada .marca-pliegue svg {
+  opacity: 1;
+}
+
+/* Los pasos del contador: paralelogramos, como todo control de la lámina. */
+.paso-boton {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-hueso);
+  transform: skewX(var(--sesgo));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-hueso) 26%, transparent);
+  transition:
+    background-color 0.2s var(--ease-pliegue),
+    color 0.2s var(--ease-pliegue),
+    box-shadow 0.2s var(--ease-pliegue);
+}
+.paso-boton svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  transform: skewX(calc(var(--sesgo) * -1));
+}
+.paso-boton:hover:not(:disabled) {
+  background: var(--color-oro);
+  color: var(--color-lamina);
+  box-shadow: inset 0 0 0 1px var(--color-oro-claro);
+}
+.paso-boton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.contador-valor {
+  min-width: 2.5rem;
+  text-align: center;
+}
+
+/*
+  EL GRUPO EXCLUYENTE
+  Un pliegue solo puede doblar hacia un lado: o monte, o valle. El grupo es esa
+  decisión, y por eso sus opciones no son tarjetas independientes sino cantos
+  de un mismo pliegue.
+*/
+.grupo {
+  background: var(--color-faceta);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-oro) 22%, transparent);
+}
+
+.opcion {
+  position: relative;
+  background: color-mix(in oklab, var(--color-lamina) 62%, transparent);
+  cursor: pointer;
+  transition:
+    background-color 0.2s var(--ease-pliegue),
+    opacity 0.2s var(--ease-pliegue);
+}
+.opcion:not(.desplegada) {
+  opacity: 0.82;
+}
+.opcion:hover {
+  opacity: 1;
+  background: var(--color-faceta-alta);
+}
+.opcion.desplegada {
+  background: var(--color-faceta-alta);
+}
+.opcion.desplegada::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: var(--color-oro);
+}
+.opcion:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--color-oro-claro);
+}
+
+/* La marca de la opción: media faceta, llena cuando el pliegue va por ahí. */
+.marca-valle {
+  width: 0.7rem;
+  height: 0.7rem;
+  flex-shrink: 0;
+  transform: skewX(var(--sesgo));
+  box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--color-hueso) 30%, transparent);
+  transition: background-color 0.2s var(--ease-pliegue);
+}
+.desplegada .marca-valle {
+  background: var(--color-oro);
+  box-shadow: inset 0 0 0 1.5px var(--color-oro-claro);
+}
+
+.marca-recomendada {
+  display: inline-block;
+  margin-left: 0.6rem;
+  padding: 0.12rem 0.5rem;
+  background: var(--color-oro);
+  color: var(--color-lamina);
+  font-family: var(--font-ficha);
+  font-size: var(--text-rotulo);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transform: skewX(var(--sesgo));
+}
+
+/* La viñeta de las condiciones: una faceta diminuta, no un punto. */
+.marca-vineta {
+  flex-shrink: 0;
+  width: 0.38rem;
+  height: 0.38rem;
+  margin-top: 0.62em;
+  background: var(--color-oro-hondo);
+  transform: skewX(var(--sesgo));
+}
+
+/*
+  LA TIRA DE SUPERFICIE
+  Una faceta por pieza de la lámina. Encendida = desplegada. Dice cuánto de la
+  lámina está abierta: el mismo dato que el precio, dicho en el material.
+*/
+.tira-superficie {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.tira-faceta {
+  width: 0.42rem;
+  height: 0.9rem;
+  background: color-mix(in oklab, var(--color-hueso) 14%, transparent);
+  transform: skewX(var(--sesgo));
+  transition: background-color 0.3s var(--ease-pliegue);
+}
+.tira-faceta.encendida {
+  background: var(--color-oro);
+}
+@media (min-width: 640px) {
+  .tira-faceta {
+    width: 0.6rem;
+    height: 1.1rem;
+  }
+}
+
+.barra-total {
+  background: color-mix(in oklab, var(--color-lamina-honda) 92%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow:
+    0 2px 4px oklch(0 0 0 / 0.4),
+    0 18px 40px -18px oklch(0 0 0 / 0.8);
+}
+.barra-total__cuenta {
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+@media (min-width: 640px) {
+  .barra-total__cuenta {
+    letter-spacing: 0.18em;
+  }
+}
+
+/*
+  EL DESPLIEGUE
+  El único momento de movimiento autoral de la página: al cargar, la lámina se
+  abre de un tirón. Cada faceta rota sobre su canto superior con un retardo que
+  avanza en diagonal, que es como se propaga un pliegue Miura de verdad — no
+  una entrada idéntica por sección.
+*/
+@keyframes desplegar {
+  from {
+    opacity: 0;
+    transform: perspective(900px) rotateX(-62deg);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(900px) rotateX(0);
+  }
+}
+.pieza,
+.grupo {
+  transform-origin: top center;
+  animation: desplegar 0.5s var(--ease-pliegue) both;
+  animation-delay: calc(var(--orden, 0) * 45ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pieza,
+  .grupo {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   EL DOCUMENTO IMPRESO
+   La lámina llevada al papel. Acá se invierte entera: la hoja es la cara clara
+   del mismo material, porque un presupuesto en oro sobre negro se imprime como
+   una mancha y nadie lo firma.
+   ========================================================================== */
+.solo-impresion {
+  display: none;
+}
+
+.doc-tabla {
+  width: 100%;
+  border-collapse: collapse;
+}
+.doc-cabecera {
+  padding-bottom: 0.4rem;
+  border-bottom: 1.5px solid color-mix(in srgb, var(--color-tinta) 30%, transparent);
+}
+.doc-fase {
+  padding: 0.95rem 0 0.3rem;
+  text-align: left;
+}
+.doc-concepto {
+  padding: 0.42rem 0;
+  font-family: var(--font-texto);
+  font-size: var(--text-menudo);
+  line-height: 1.4;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-tinta) 14%, transparent);
+  vertical-align: top;
+}
+.doc-ref {
+  width: 3.4rem;
+  white-space: nowrap;
+}
+.doc-numero {
+  width: 5.5rem;
+  text-align: right;
+  white-space: nowrap;
+}
+.doc-subtotal {
+  font-weight: 600;
+  border-bottom: 1.5px solid color-mix(in srgb, var(--color-tinta) 30%, transparent);
+}
+.doc-total td {
+  padding: 0.7rem 0.9rem;
+  background: var(--color-tinta);
+  color: var(--color-papel);
+  font-family: var(--font-display);
+  font-size: var(--text-rubro);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.doc-firma {
+  height: 2.6rem;
+  border-bottom: 1.5px solid color-mix(in srgb, var(--color-tinta) 50%, transparent);
+}
+[data-doc-row][hidden],
+[data-doc-phase][hidden] {
+  display: none;
+}
+
+@media print {
+  .solo-impresion {
+    display: block;
+  }
+  .doc-firmas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+    break-inside: avoid;
+  }
+
+  .solo-pantalla,
+  [data-noprint] {
+    display: none !important;
+  }
+
+  /* La inversión. El chaflán y las facetas no sobreviven al papel: en tinta
+     una esquina cortada parece un error de impresión, no una decisión.
+
+     Va por barrido y no por lista de clases: enumerarlas dejaba fuera las
+     variantes con alfa (`.text-hueso/70`), y los bloques de condiciones se
+     imprimían en hueso sobre papel, a 1,05:1. Invisibles. */
+  body {
+    background: var(--color-papel) !important;
+    color: var(--color-tinta) !important;
+  }
+  main,
+  main * {
+    color: var(--color-tinta) !important;
+  }
+  .faceta {
+    background: transparent !important;
+    clip-path: none !important;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-tinta) 22%, transparent) !important;
+  }
+  .rotulo,
+  .id-pliegue {
+    color: color-mix(in srgb, var(--color-tinta) 62%, transparent) !important;
+  }
+  .marca-vineta {
+    background: var(--color-tinta) !important;
+  }
+  /* La única fila que conserva tinta clara: va sobre fondo sólido. */
+  .doc-total td {
+    color: var(--color-papel) !important;
+  }
+
+  .doc-total td,
+  .faceta {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  [data-doc-phase],
+  .faceta {
+    break-inside: avoid;
+  }
+
+  @page {
+    margin: 16mm;
+  }
+}

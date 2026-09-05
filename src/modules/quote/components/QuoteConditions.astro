@@ -1,0 +1,23 @@
+---
+/* Bloque de condiciones. Los presupuestos se pelean por lo que no dicen. */
+interface Props {
+  title: string;
+  points: string[];
+}
+
+const { title, points } = Astro.props;
+---
+
+<div class="faceta px-5 py-4">
+  <p class="rotulo">{title}</p>
+  <ul class="mt-3 space-y-2">
+    {
+      points.map((point) => (
+        <li class="flex gap-2.5 font-texto text-menudo leading-relaxed text-hueso/70">
+          <span class="marca-vineta" aria-hidden="true" />
+          <span>{point}</span>
+        </li>
+      ))
+    }
+  </ul>
+</div>

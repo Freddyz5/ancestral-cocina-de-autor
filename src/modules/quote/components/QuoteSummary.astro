@@ -1,0 +1,93 @@
+---
+/*
+  Cierre del cotizador: la barra de total que queda fija abajo, las acciones y
+  la nota de cronograma.
+
+  La barra lleva `data-noprint` porque un elemento fijo se repite en cada hoja
+  al imprimir — es un defecto de impresión, no una decisión de estilo.
+*/
+interface Props {
+  totalLabel: string;
+  print: string;
+  save: string;
+  scheduleNote: string;
+  /** Cuántas facetas tiene la tira de superficie: una por pieza de la lámina. */
+  pieceCount: number;
+}
+
+const { totalLabel, print, save, scheduleNote, pieceCount } = Astro.props;
+---
+
+<!--
+  EL TOTAL. La tira de facetas de la izquierda es la superficie desplegada: una
+  faceta encendida por pieza incluida, apagada por pieza plegada. Dice de un
+  vistazo cuánto de la lámina está abierto, que es lo mismo que dice el precio
+  pero se lee sin leer un número.
+-->
+<div
+  class="solo-pantalla faceta barra-total sticky bottom-4 z-10 mt-9 flex items-center justify-between gap-x-4 px-4 py-3.5 sm:gap-x-6 sm:px-5 sm:py-4"
+  role="status"
+  aria-live="polite"
+  data-noprint
+>
+  <div class="min-w-0">
+    <div class="tira-superficie" aria-hidden="true">
+      {Array.from({ length: pieceCount }, () => <span class="tira-faceta" data-surface-cell />)}
+    </div>
+    <p class="rotulo barra-total__cuenta mt-2.5" data-total-count></p>
+  </div>
+  <p class="cifra shrink-0 text-titulo font-700 text-oro-claro" data-total-amount>
+    <span class="sr-only">{totalLabel}</span>
+  </p>
+</div>
+
+<div class="mt-5 flex flex-wrap items-center justify-center gap-2.5" data-noprint>
+  <button type="button" class="boton boton-contorno" data-print>
+    <span class="inline-flex items-center gap-2">
+      <svg
+        class="h-3.5 w-3.5"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M4.5 6V2.5h7V6" />
+        <path d="M4.5 12h-2V6h11v6h-2" />
+        <path d="M4.5 9.5h7v4h-7z" />
+      </svg>
+      {print}
+    </span>
+  </button>
+
+  <button type="button" class="boton boton-oro" data-save>
+    <span class="inline-flex items-center gap-2">
+      <svg
+        class="h-3.5 w-3.5"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M2.5 8.5h11" />
+        <path d="M6.5 4.5h-4v8h11v-8h-4" />
+        <path d="M8 1.5v7M5.6 6.2 8 8.6l2.4-2.4" />
+      </svg>
+      <span data-save-label>{save}</span>
+    </span>
+  </button>
+</div>
+
+<!-- `data-noprint`: el documento impreso trae su propia nota de cronograma,
+     y sin esto salía dos veces en la misma hoja. -->
+<p
+  class="mt-5 text-center font-texto text-menudo leading-relaxed text-hueso-suave"
+  data-noprint
+>
+  {scheduleNote}
+</p>

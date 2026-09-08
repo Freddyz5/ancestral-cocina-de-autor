@@ -1,0 +1,81 @@
+---
+/*
+  Pieza de cantidad variable. El valor va en un <output aria-live="polite">
+  para que el lector de pantalla cante el cambio sin mover el foco.
+*/
+import type { CounterItem } from '../core/types';
+
+interface Props {
+  item: CounterItem;
+  order: number;
+  requiresLabel: string;
+  requiresName: string;
+  addLabel: string;
+  removeLabel: string;
+}
+
+const { item, order, requiresLabel, requiresName, addLabel, removeLabel } = Astro.props;
+---
+
+<div
+  class="faceta pieza w-full px-5 py-4"
+  style={`--orden:${order}`}
+  data-piece="counter"
+  data-id={item.id}
+>
+  <div class="flex items-start gap-3.5">
+    <span class="marca-pliegue mt-0.5" aria-hidden="true">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+        <path d="M3.5 8h9" />
+      </svg>
+    </span>
+
+    <div class="min-w-0 flex-1">
+      <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <p class="font-display text-rubro font-600 uppercase text-hueso">
+          {item.tag && <span class="id-pliegue mr-2">{item.tag}</span>}
+          {item.name}
+        </p>
+        <p class="cifra shrink-0 text-menudo text-hueso-suave" data-line-price></p>
+      </div>
+
+      <p class="mt-1.5 max-w-[58ch] font-texto text-cuerpo text-hueso/70">{item.description}</p>
+
+      {
+        item.requires && (
+          <p class="rotulo mt-2 text-ambar" data-lock hidden>
+            {requiresLabel} · {requiresName}
+          </p>
+        )
+      }
+
+      <div class="mt-3.5 flex items-center gap-2">
+        <button
+          type="button"
+          class="paso-boton"
+          data-step="-1"
+          aria-label={`${removeLabel} ${item.unit.singular}`}
+        >
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 8h8" />
+          </svg>
+        </button>
+        <output
+          class="cifra contador-valor text-rubro font-600 text-hueso"
+          data-counter-value
+          aria-live="polite">{item.initial}</output
+        >
+        <button
+          type="button"
+          class="paso-boton"
+          data-step="1"
+          aria-label={`${addLabel} ${item.unit.singular}`}
+        >
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 8h8M8 4v8" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

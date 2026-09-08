@@ -1,0 +1,75 @@
+---
+/*
+  Grupo excluyente: hay que elegir una alternativa. role="radiogroup" +
+  role="radio" es lo que la interacción realmente es, y el lector de pantalla
+  anuncia «1 de 3».
+
+  Un pliegue solo puede doblar hacia un lado: o monte, o valle. Por eso las
+  opciones no son tarjetas independientes sino cantos de un mismo pliegue.
+*/
+import type { ChoiceGroup } from '../core/types';
+
+interface Props {
+  item: ChoiceGroup;
+  order: number;
+  requiresLabel: string;
+  requiresName: string;
+  chooseOne: string;
+  recommended: string;
+}
+
+const { item, order, requiresLabel, requiresName, chooseOne, recommended } = Astro.props;
+---
+
+<div
+  class="faceta grupo w-full px-5 py-4"
+  style={`--orden:${order}`}
+  data-piece="choice"
+  data-id={item.id}
+>
+  <p class="font-display text-rubro font-600 uppercase text-hueso" id={`choice-${item.id}`}>
+    {item.question}
+  </p>
+  <p class="rotulo mt-1">{chooseOne}</p>
+
+  {
+    item.requires && (
+      <p class="rotulo mt-2 text-ambar" data-lock hidden>
+        {requiresLabel} · {requiresName}
+      </p>
+    )
+  }
+
+  <div class="mt-3.5 space-y-1.5" role="radiogroup" aria-labelledby={`choice-${item.id}`}>
+    {
+      item.options.map((option) => (
+        <button
+          type="button"
+          class="opcion w-full px-4 py-3 text-left"
+          role="radio"
+          aria-checked="false"
+          data-option
+          data-group={item.id}
+          data-id={option.id}
+        >
+          <span class="flex items-start gap-3">
+            <span class="marca-valle mt-1" aria-hidden="true" />
+            <span class="min-w-0 flex-1">
+              <span class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <span class="font-display text-cuerpo font-600 uppercase tracking-wide text-hueso">
+                  {option.tag && <span class="id-pliegue mr-2">{option.tag}</span>}
+                  {option.name}
+                  {option.recommended && <span class="marca-recomendada">{recommended}</span>}
+                </span>
+                <span class="cifra shrink-0 text-menudo text-hueso-suave" data-line-price />
+              </span>
+              <span class="mt-1 block max-w-[56ch] font-texto text-menudo leading-relaxed text-hueso/75">
+                {option.description}
+              </span>
+            </span>
+          </span>
+        </button>
+      ))
+    }
+  </div>
+</div>

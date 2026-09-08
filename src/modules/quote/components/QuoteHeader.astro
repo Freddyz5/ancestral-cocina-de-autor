@@ -1,0 +1,81 @@
+---
+/*
+  EL PAQUETE CERRADO. La lámina Miura empieza plegada en un paquete de oro, y
+  eso es con lo que abre la página: el lockup centrado a escala de paquete
+  sobre el campo de pliegues. Debajo, el titular en versales y la ficha de
+  emisión rotulada como en un plano de plegado. De acá para abajo, todo está
+  desplegado.
+*/
+import Logo from '../../Ancestral/components/Logo.astro';
+import type { QuoteData } from '../core/types';
+
+interface Props {
+  data: QuoteData;
+  backHref: string;
+}
+
+const { data, backHref } = Astro.props;
+const { ui, settings, document: doc } = data;
+
+/*
+  El «+» del titular va en oro. Se parte el asunto por ese signo en vez de
+  escribir el marcado a mano: así el titular sigue saliendo de quote.json y no
+  hay una segunda copia del texto en el componente. Sin «+», se pinta entero.
+*/
+const [antes, despues] = settings.subject.split(' + ');
+---
+
+<a
+  href={backHref}
+  class="volver rotulo inline-flex items-center gap-1.5 transition-colors duration-200 hover:text-oro-claro"
+  data-noprint
+>
+  <svg
+    class="h-3 w-3"
+    viewBox="0 0 16 16"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M9.5 3 4.5 8l5 5" />
+  </svg>
+  {ui.back}
+</a>
+
+<header class="mt-7 sm:mt-10">
+  <div class="flex flex-col items-center text-center">
+    <Logo direccion="sello" class="max-w-[15rem] sm:max-w-[18rem]" />
+    <h1 class="mt-6 text-monumental font-700 text-hueso">
+      {antes}{despues && <span class="text-oro"> + </span>}{despues}
+    </h1>
+  </div>
+
+  <div class="mt-7 h-px w-full bg-linear-to-r from-transparent via-oro/55 to-transparent"></div>
+
+  <dl class="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
+    <div>
+      <dt class="rotulo">{doc.preparedFor}</dt>
+      <dd class="mt-1 font-texto text-menudo text-hueso">{settings.client}</dd>
+    </div>
+    <div>
+      <dt class="rotulo">{doc.preparedBy}</dt>
+      <dd class="mt-1 font-texto text-menudo text-hueso">{settings.preparedBy}</dd>
+    </div>
+    <div>
+      <dt class="rotulo">{doc.issuedOn}</dt>
+      <dd class="cifra mt-1 text-menudo text-hueso" data-doc-date></dd>
+    </div>
+    <div>
+      <dt class="rotulo">{doc.validity}</dt>
+      <!-- En una línea: un salto entre dos expresiones se come el espacio. -->
+      <dd class="cifra mt-1 text-menudo text-hueso">{settings.validityDays} {ui.validitySuffix}</dd>
+    </div>
+  </dl>
+
+  <p class="solo-pantalla mt-5 max-w-[54ch] font-texto text-cuerpo text-hueso/75 sm:text-guia">
+    {ui.intro}
+  </p>
+</header>

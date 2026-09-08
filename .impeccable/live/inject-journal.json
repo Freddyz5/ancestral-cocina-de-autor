@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "appRoot": "/Users/freddytacuri/WorkSpace/ownCloud/palsabi",
+  "framework": "astro",
+  "port": 8400,
+  "pid": 17925,
+  "recordedAt": "2026-08-13T17:04:40.907Z",
+  "artifacts": [
+    {
+      "kind": "patched",
+      "path": "src/layouts/Base.astro",
+      "patch": "live-tag",
+      "markers": [
+        "impeccable-live-start",
+        "data-impeccable-csp-original"
+      ]
+    }
+  ]
+}

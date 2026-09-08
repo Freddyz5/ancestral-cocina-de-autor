@@ -1,0 +1,88 @@
+---
+/**
+ * Portada provisional. La landing de Ancestral todavía no está construida —es
+ * la Fase 1 del presupuesto—, así que la raíz sostiene la marca y manda a los
+ * dos únicos destinos que hoy existen de verdad: WhatsApp e Instagram.
+ *
+ * El enlace al cotizador es discreto a propósito: es herramienta de reunión,
+ * no una página del sitio público.
+ */
+import Base from '../modules/Ancestral/layouts/Base.astro';
+import Lamina from '../modules/Ancestral/components/Lamina.astro';
+import Logo from '../modules/Ancestral/components/Logo.astro';
+import {
+  SITIO,
+  CIUDADES,
+  INSTAGRAM,
+  INSTAGRAM_URL,
+  WHATSAPP_LEGIBLE,
+  whatsapp,
+} from '../modules/Ancestral/constants/config';
+
+const mensaje = `Hola ${SITIO.nombre}, quisiera hacer una reserva.`;
+---
+
+<Base>
+  <Lamina />
+
+  <main
+    id="contenido"
+    class="relative grid min-h-screen place-items-center px-5 py-16 text-center sm:px-8"
+  >
+    <div class="w-full max-w-lg">
+      <Logo direccion="sello" firma class="w-full" />
+
+      <p class="mt-10 font-texto text-guia leading-relaxed text-hueso/80">{SITIO.lema}</p>
+
+      <p class="rotulo mt-4">{CIUDADES.join(' · ')}</p>
+
+      <div class="mt-9 h-px w-full bg-linear-to-r from-transparent via-oro/45 to-transparent"></div>
+
+      <div class="mt-9 flex flex-wrap items-center justify-center gap-2.5">
+        <a href={whatsapp(mensaje)} class="boton boton-oro" rel="noopener">
+          <span class="inline-flex items-center gap-2">
+            <svg
+              class="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                d="M12.04 2c-5.46 0-9.9 4.44-9.9 9.9 0 1.75.46 3.45 1.32 4.95L2 22l5.3-1.38a9.87 9.87 0 0 0 4.74 1.21h.01c5.46 0 9.9-4.44 9.9-9.9 0-2.64-1.03-5.13-2.9-7A9.82 9.82 0 0 0 12.04 2Zm0 18.02a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.81.83-3.03-.2-.31a8.2 8.2 0 0 1-1.26-4.36c0-4.54 3.7-8.23 8.23-8.23 2.2 0 4.26.86 5.82 2.41a8.18 8.18 0 0 1 2.41 5.82c0 4.54-3.7 8.22-8.25 8.22Zm4.52-6.16c-.25-.13-1.47-.72-1.69-.8-.23-.09-.39-.13-.56.12-.16.25-.64.8-.79.97-.14.16-.29.19-.54.06-.25-.12-1.05-.38-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.4-.42-.56-.43h-.47c-.17 0-.43.06-.66.31-.22.25-.87.85-.87 2.07s.9 2.4 1.02 2.57c.12.16 1.76 2.68 4.26 3.76.59.26 1.06.41 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.19.21-.58.21-1.08.14-1.18-.06-.11-.22-.17-.47-.29Z"
+              ></path>
+            </svg>
+            {WHATSAPP_LEGIBLE}
+          </span>
+        </a>
+        <a href={INSTAGRAM_URL} class="boton boton-contorno" rel="noopener">
+          <span class="inline-flex items-center gap-2">
+            <svg
+              class="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              aria-hidden="true"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+              <circle cx="12" cy="12" r="4"></circle>
+              <circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"></circle>
+            </svg>
+            <span class="normal-case">@{INSTAGRAM}</span>
+          </span>
+        </a>
+      </div>
+
+      <p class="mt-12 font-texto text-menudo text-hueso-suave">
+        {SITIO.grupo} · {SITIO.serviciosGrupo}
+      </p>
+      <p class="mt-6">
+        <a
+          href="/presupuesto"
+          class="rotulo underline decoration-oro/40 underline-offset-4 transition-colors duration-200 hover:text-oro-claro"
+          >Cotización del sitio web</a
+        >
+      </p>
+    </div>
+  </main>
+</Base>

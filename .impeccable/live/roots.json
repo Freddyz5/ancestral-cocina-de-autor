@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "appRoot": "/Users/freddytacuri/WorkSpace/ownCloud/palsabi",
+  "repoRoot": "/Users/freddytacuri/WorkSpace/ownCloud/palsabi",
+  "contextRoot": "/Users/freddytacuri/WorkSpace/ownCloud/palsabi",
+  "sessionRoot": "/Users/freddytacuri/WorkSpace/ownCloud/palsabi/.impeccable/live",
+  "productPath": "/Users/freddytacuri/WorkSpace/ownCloud/palsabi/PRODUCT.md",
+  "designPath": "/Users/freddytacuri/WorkSpace/ownCloud/palsabi/DESIGN.md",
+  "resolvedFrom": "cwd"
+}

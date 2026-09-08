@@ -1,0 +1,140 @@
+---
+/*
+  Composición del cotizador. Todo el marcado sale del servidor, así que la
+  página se lee entera sin JavaScript; lo que el controlador añade son los
+  estados, las cifras y el enlace. Los datos viajan al cliente en un
+  <script type="application/json"> para no serializar un objeto grande con
+  define:vars.
+
+  Aquí no hay ni una cifra ni un texto: todo vive en src/constants/quote.json.
+*/
+import QuoteHeader from './components/QuoteHeader.astro';
+import QuoteToggleItem from './components/QuoteToggleItem.astro';
+import QuoteCounterItem from './components/QuoteCounterItem.astro';
+import QuoteChoiceItem from './components/QuoteChoiceItem.astro';
+import QuoteConditions from './components/QuoteConditions.astro';
+import QuoteSummary from './components/QuoteSummary.astro';
+import QuoteDocument from './components/QuoteDocument.astro';
+import { indexQuote } from './core/quote';
+import type { QuoteData } from './core/types';
+import './styles/quote.css';
+
+interface Props {
+  data: QuoteData;
+  backHref: string;
+}
+
+const { data, backHref } = Astro.props;
+const { ui, phases } = data;
+
+/* El nombre legible de cada requisito, para el cartel «Necesita · …». */
+const { nameById } = indexQuote(data);
+const requiresName = (id?: string) => (id ? (nameById.get(id) ?? id) : '');
+
+/* Una faceta de la tira de superficie por pieza de la lámina. */
+const pieceCount = phases.reduce((total, phase) => total + phase.items.length, 0);
+---
+
+<main id="quote" class="relative min-h-screen px-5 pt-8 pb-24 sm:px-8 sm:pt-12 sm:pb-28">
+  <div class="mx-auto max-w-3xl">
+    <QuoteHeader data={data} backHref={backHref} />
+
+    <p
+      class="solo-pantalla rotulo mt-4 text-ambar"
+      data-readonly-notice
+      hidden
+    >
+      {ui.readonlyNotice}
+    </p>
+
+    <QuoteDocument data={data} />
+
+    <!-- LAS FACETAS. En el documento impreso las reemplaza la tabla. -->
+    <div class="solo-pantalla">
+      {
+        phases.map((phase, phaseIndex) => (
+          <section class="mt-9">
+            <div class="flex items-baseline justify-between gap-4 border-b border-valle/45 pb-2">
+              <h2 class="text-titulo font-600 text-hueso">{phase.name}</h2>
+              <span class="id-pliegue cifra shrink-0" data-phase-total={phase.id} />
+            </div>
+
+            {phase.note && (
+              <p class="mt-3 max-w-[58ch] font-texto text-menudo leading-relaxed text-hueso-suave">
+                {phase.note}
+              </p>
+            )}
+
+            <div class="mt-4 space-y-2">
+              {phase.items.map((item, order) =>
+                item.kind === 'toggle' ? (
+                  <QuoteToggleItem
+                    item={item}
+                    order={phaseIndex * 3 + order}
+                    requiresLabel={ui.requires}
+                    requiresName={requiresName(item.requires)}
+                  />
+                ) : item.kind === 'counter' ? (
+                  <QuoteCounterItem
+                    item={item}
+                    order={phaseIndex * 3 + order}
+                    requiresLabel={ui.requires}
+                    requiresName={requiresName(item.requires)}
+                    addLabel={ui.addUnit}
+                    removeLabel={ui.removeUnit}
+                  />
+                ) : (
+                  <QuoteChoiceItem
+                    item={item}
+                    order={phaseIndex * 3 + order}
+                    requiresLabel={ui.requires}
+                    requiresName={requiresName(item.requires)}
+                    chooseOne={ui.chooseOne}
+                    recommended={ui.recommended}
+                  />
+                ),
+              )}
+            </div>
+          </section>
+        ))
+      }
+    </div>
+
+    <!-- Condiciones. Dos facetas quietas: no se despliegan ni suman. -->
+    <div class="solo-pantalla mt-9 grid gap-2 sm:grid-cols-2">
+      <QuoteConditions title={ui.recurringTitle} points={data.recurringCosts} />
+      <QuoteConditions title={ui.notIncludedTitle} points={data.notIncluded} />
+    </div>
+
+    <QuoteSummary
+      totalLabel={ui.totalLabel}
+      print={ui.print}
+      save={ui.save}
+      scheduleNote={ui.scheduleNote}
+      pieceCount={pieceCount}
+    />
+
+    <script type="application/json" data-quote-data set:html={JSON.stringify(data)} is:inline />
+  </div>
+</main>
+
+<script>
+  import { mountQuote } from './core/controller';
+  import { isReadonly } from './core/url';
+  import type { QuoteData } from './core/types';
+
+  const root = document.getElementById('quote');
+  const payload = root?.querySelector('[data-quote-data]');
+
+  if (root && payload?.textContent) {
+    const data = JSON.parse(payload.textContent) as QuoteData;
+
+    /* El aviso sólo aparece cuando el enlace realmente trae el modo. */
+    if (isReadonly(new URLSearchParams(location.search))) {
+      const notice = root.querySelector<HTMLElement>('[data-readonly-notice]');
+      if (notice) notice.hidden = false;
+    }
+
+    mountQuote(root, data, 'es');
+  }
+</script>

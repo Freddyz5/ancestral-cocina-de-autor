@@ -1,0 +1,25 @@
+---
+/*
+  Cotizador por piezas. NO está enlazado desde la navegación a propósito: es la
+  herramienta que se abre en la reunión, no una página pública del sitio.
+
+  `?readonly=1` congela la interacción y deja el presupuesto como quedó en el
+  enlace, que es la puerta prevista para abrirlo al cliente sin rehacerlo.
+
+  Contenido y precios viven en src/constants/quote.json; aquí no hay cifras ni
+  textos. Cada pieza trae su precio cerrado: el presupuesto ya no se mide en
+  jornadas, así que el total es una suma y no una multiplicación.
+*/
+import Base from '../modules/Ancestral/layouts/Base.astro';
+import Lamina from '../modules/Ancestral/components/Lamina.astro';
+import QuotePage from '../modules/quote/QuotePage.astro';
+import quote from '../constants/quote.json';
+import type { QuoteData } from '../modules/quote/core/types';
+
+const data = quote as unknown as QuoteData;
+---
+
+<Base titulo={data.meta.title} descripcion={data.meta.description}>
+  <Lamina />
+  <QuotePage data={data} backHref="/" />
+</Base>

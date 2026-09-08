@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "codex-grid-background",
+        "value": "*",
+        "files": [
+          "src/modules/Landing/components/Imprenta.astro"
+        ],
+        "createdAt": "2026-08-16T06:57:57.046Z",
+        "reason": "El usuario eligio la opcion Pagina impresa: la trama de medio tono es el material del fondo, no una reticula decorativa"
+      }
+    ]
+  }
+}

@@ -217,6 +217,34 @@ button.pieza {
   box-shadow: inset 0 0 0 2px var(--color-oro-claro);
 }
 
+/*
+  El grupo colapsado. Su requisito se plegó, así que la decisión no está sobre
+  la mesa: sus opciones dejan de responder al puntero y pierden el aro de oro
+  de la elegida, porque una elección que no cuenta no puede seguir marcada como
+  si contara. El texto conserva su contraste — la regla de la lámina es que una
+  pieza plegada se sigue leyendo.
+*/
+/* El aro del propio grupo también se apaga: era la única señal de oro que
+   quedaba encendida en un bloque deshabilitado. */
+.grupo.colapsada {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-valle) 55%, transparent);
+}
+.grupo.colapsada .opcion {
+  cursor: not-allowed;
+  background: color-mix(in oklab, var(--color-lamina) 62%, transparent);
+}
+.grupo.colapsada .opcion:hover {
+  background: color-mix(in oklab, var(--color-lamina) 62%, transparent);
+}
+.grupo.colapsada .opcion.desplegada::before {
+  background: var(--color-valle);
+}
+.grupo.colapsada .marca-valle,
+.grupo.colapsada [data-line-price],
+.grupo.colapsada .marca-recomendada {
+  opacity: 0.4;
+}
+
 /* La marca de la opción: media faceta, llena cuando el pliegue va por ahí. */
 .marca-valle {
   width: 0.7rem;

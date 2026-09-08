@@ -108,15 +108,22 @@ export function mountQuote(root: HTMLElement, data: QuoteData, lang: Lang): void
           const delta = Number(step.dataset.step);
           step.disabled = !free || (delta < 0 ? count <= item.min : count >= item.max);
         }
+        continue;
       }
+
+      /* Grupo excluyente: se declara deshabilitado igual que un toggle, para
+         que el estado que se ve tenga respaldo en el árbol de accesibilidad. */
+      element.setAttribute('aria-disabled', String(!free));
     }
 
     for (const element of refs.options) {
       const id = element.dataset.id ?? '';
       const groupId = element.dataset.group ?? '';
       const chosen = selection.choices[groupId] === id;
+      const free = result.available[id] !== false;
       element.classList.toggle('desplegada', chosen);
       element.setAttribute('aria-checked', String(chosen));
+      element.setAttribute('aria-disabled', String(!free));
 
       const group = index.items.get(groupId);
       if (group?.kind !== 'choice') continue;
@@ -220,6 +227,7 @@ function wireEvents(
 
     const option = target.closest<HTMLElement>('[data-option]');
     if (option) {
+      if (option.getAttribute('aria-disabled') === 'true') return;
       const group = option.dataset.group ?? '';
       const id = option.dataset.id ?? '';
       if (group && id) {

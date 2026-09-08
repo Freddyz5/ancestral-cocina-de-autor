@@ -78,7 +78,7 @@
         {
           "kind": "choice",
           "id": "carga",
-          "question": "¿Cómo entran y se actualizan los platos y los precios?",
+          "question": "Opciones de carga y actualización de los platos y precios?",
           "initial": "carga-panel",
           "requires": "carta-base",
           "options": [
@@ -112,7 +112,7 @@
           "tag": "F2.4",
           "name": "Galería de platos",
           "initial": false,
-          "requires": "landing-base",
+          "requires": "carta-base",
           "description": "Galería de fotografías con vista ampliada, pensada para que los platos se vean grandes en el teléfono. Las imágenes se optimizan para que la página no se vuelva lenta.",
           "price": 60
         },
@@ -160,7 +160,7 @@
           "name": "SEO básico",
           "initial": false,
           "description": "Título y descripción en cada página, sitemap.xml y robots.txt generados automáticamente, y datos estructurados (Schema.org de Restaurante y de Menú) que identifican al negocio ante Google.",
-          "price": 30
+          "price": 60
         },
         {
           "kind": "toggle",
@@ -170,7 +170,7 @@
           "initial": false,
           "requires": "seo-basico",
           "description": "Verificación del sitio en Google Search Console y envío del sitemap. Configuración inicial del Perfil de Negocio en Google (nombre, dirección, horario, categoría, fotos) para aparecer en el mapa y en la ficha lateral al buscar el nombre del restaurante.",
-          "price": 20
+          "price": 30
         }
       ]
     },

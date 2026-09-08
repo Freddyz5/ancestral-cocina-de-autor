@@ -27,7 +27,7 @@
           "name": "Landing de presentación",
           "initial": true,
           "description": "Incluye 5 secciones: portada, la cocina y el chef, platos destacados, ubicación y horarios, y cierre con reserva por WhatsApp — más cabecera y pie. El texto final se define con el cliente, ajustes finales y publicación en la web.",
-          "price": 80
+          "price": 90
         },
         {
           "kind": "counter",
